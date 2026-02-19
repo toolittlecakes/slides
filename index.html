@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Slides</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500,650,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #07070a;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface-2: rgba(255, 255, 255, 0.09);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.62);
+        --dim: rgba(255, 255, 255, 0.42);
+        --accent: #ef5a3c;
+        --accent-2: #f7b15b;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        font-family: "Instrument Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: radial-gradient(900px 500px at 10% 0%, rgba(239, 90, 60, 0.18), transparent 60%),
+          radial-gradient(700px 520px at 85% 10%, rgba(247, 177, 91, 0.16), transparent 55%),
+          radial-gradient(900px 900px at 50% 110%, rgba(255, 255, 255, 0.07), transparent 60%),
+          var(--bg);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+
+      header {
+        display: grid;
+        gap: 14px;
+        padding: 10px 0 28px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .kicker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        box-shadow: 0 0 0 6px rgba(239, 90, 60, 0.12);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Fraunces", ui-serif, Georgia, serif;
+        font-weight: 650;
+        font-size: clamp(34px, 5.2vw, 56px);
+        letter-spacing: -0.02em;
+        line-height: 1.02;
+      }
+
+      .sub {
+        margin: 0;
+        max-width: 60ch;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .card {
+        grid-column: span 12;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(239, 90, 60, 0.35);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.06));
+      }
+
+      .card-inner {
+        padding: 18px 18px 16px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .title-row {
+        display: grid;
+        gap: 6px;
+      }
+      .title-row h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .title-row p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.45;
+        font-size: 14px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.18);
+        color: rgba(255, 255, 255, 0.86);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+      }
+
+      .cta {
+        display: inline-flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(239, 90, 60, 0.35);
+        background: linear-gradient(135deg, rgba(239, 90, 60, 0.16), rgba(247, 177, 91, 0.10));
+      }
+      .cta strong {
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .cta span {
+        color: var(--muted);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+      }
+
+      footer {
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+        color: var(--dim);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      @media (min-width: 820px) {
+        .card-inner {
+          grid-template-columns: 1fr auto;
+          align-items: center;
+        }
+        .title-row h2 {
+          font-size: 20px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .card {
+          transition: none;
+        }
+        .card:hover {
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="kicker"><span class="dot" aria-hidden="true"></span> витрина</div>
+        <h1>Презентации</h1>
+        <p class="sub">Одна презентация = одна папка. Внутри: <code>index.md</code> (черновик) и <code>index.html</code> (финал, можно руками).</p>
+      </header>
+
+      <main class="grid" aria-label="Список презентаций">
+        <a class="card" href="./podlodka/" aria-label="Открыть: Строим команду ИИ-агентов">
+          <div class="card-inner">
+            <div class="title-row">
+              <h2>Строим команду ИИ-агентов</h2>
+              <p>Подлодка — заметки про субагентов, контекст и практику в CLI.</p>
+              <div class="meta">
+                <span class="pill">podlodka</span>
+                <span class="pill">ru</span>
+                <span class="pill">slides</span>
+              </div>
+            </div>
+
+            <div class="cta" role="presentation">
+              <strong>Открыть</strong>
+              <span>./podlodka/</span>
+            </div>
+          </div>
+        </a>
+      </main>
+
+      <footer>
+        Подсказка: добавляешь новую презу — создаёшь папку <code>&lt;slug&gt;/</code> с <code>index.html</code>, и дописываешь карточку в этот файл.
+      </footer>
+    </div>
+  </body>
+</html>
+
