@@ -121,6 +121,32 @@
       color: #ef5a3c;
     }
 
+    .speaker-layout {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      gap: 3.5rem;
+    }
+    .speaker-layout-main {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .speaker-photo-wrap {
+      flex: 0 0 340px;
+      margin-left: auto;
+    }
+    .speaker-photo-wrap img {
+      width: 100%;
+      height: auto;
+      max-width: 340px;
+    }
+
+    @media (max-width: 1200px) {
+      .speaker-layout { gap: 2rem; }
+      .speaker-photo-wrap { flex-basis: 290px; }
+      .speaker-photo-wrap img { max-width: 290px; }
+    }
+
     @page {
       size: landscape;
       margin: 0;
@@ -137,15 +163,24 @@
         print-color-adjust: exact;
         color-adjust: exact;
       }
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       .screen-only { display: none !important; }
       .print-only { display: block !important; }
       .print-slide {
         width: 100vw;
         height: 100vh;
+        min-height: 100vh;
         page-break-after: always;
         break-after: page;
         overflow: hidden;
         background: #08090d !important;
+      }
+      .print-slide > * {
+        width: 100% !important;
+        height: 100% !important;
       }
       .print-slide:last-child {
         page-break-after: avoid;
@@ -235,8 +270,8 @@
     const slides = [
       () => (
         <Slide>
-          <div className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px] gap-10 md:gap-14 items-start">
-            <div className="w-full">
+          <div className="max-w-6xl mx-auto speaker-layout">
+            <div className="speaker-layout-main">
               <h1 className="font-display text-5xl font-700 tracking-tight leading-tight max-w-5xl">
                 3 ошибки внедрения ИИ в разработку
               </h1>
@@ -251,11 +286,11 @@
                 <li>Пишу в AI и грабли <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="text-accent font-mono hover:text-[#ff8c70] transition-colors">(@ai_grably)</a></li>
               </ul>
             </div>
-            <div className="justify-self-start md:justify-self-end">
+            <div className="speaker-photo-wrap">
               <img
                 src="./assets/nikolay-sheyko-avatar.jpg"
                 alt="Николай Шейко"
-                className="block w-full h-auto rounded-2xl border border-border shadow-glow"
+                className="block rounded-2xl border border-border shadow-glow"
               />
             </div>
           </div>
@@ -483,7 +518,7 @@
 
       return (
         <>
-          <div className="relative w-screen h-screen overflow-hidden screen-only">
+          <div className="relative w-screen h-screen bg-bg overflow-hidden screen-only">
             <div key={animKey} className="w-full h-full slide-enter">
               <CurrentSlide />
             </div>
@@ -491,7 +526,7 @@
             <SlideCounter current={current} total={total} />
           </div>
 
-          <div className="print-only">
+          <div className="print-only bg-bg">
             {slides.map((S, i) => (
               <div key={i} className="print-slide">
                 <S />
