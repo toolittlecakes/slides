@@ -8,22 +8,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500,650,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
     <style>
       :root {
-        --bg: #07070a;
-        --surface: rgba(255, 255, 255, 0.06);
-        --surface-2: rgba(255, 255, 255, 0.09);
-        --border: rgba(255, 255, 255, 0.12);
+        --bg: #070605;
         --text: rgba(255, 255, 255, 0.92);
         --muted: rgba(255, 255, 255, 0.62);
         --dim: rgba(255, 255, 255, 0.42);
-        --accent: #ef5a3c;
-        --accent-2: #f7b15b;
-        --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+        --border: rgba(255, 255, 255, 0.12);
+        --glass: rgba(255, 255, 255, 0.06);
+        --glass-2: rgba(255, 255, 255, 0.09);
+        --accent: #cd9f2e;
+        --accent-2: #dfcb72;
+        --shadow: 0 28px 110px rgba(0, 0, 0, 0.65);
       }
 
       * {
@@ -34,15 +34,15 @@
       body {
         height: 100%;
       }
+      html {
+        background: var(--bg);
+      }
 
       body {
         margin: 0;
         color: var(--text);
-        font-family: "Instrument Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: radial-gradient(900px 500px at 10% 0%, rgba(239, 90, 60, 0.18), transparent 60%),
-          radial-gradient(700px 520px at 85% 10%, rgba(247, 177, 91, 0.16), transparent 55%),
-          radial-gradient(900px 900px at 50% 110%, rgba(255, 255, 255, 0.07), transparent 60%),
-          var(--bg);
+        font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
       }
 
       a {
@@ -50,91 +50,359 @@
         text-decoration: none;
       }
 
-      .wrap {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 48px 20px 64px;
-      }
-
-      header {
-        display: grid;
-        gap: 14px;
-        padding: 10px 0 28px;
-      }
-
-      .kicker {
-        display: inline-flex;
-        gap: 10px;
-        align-items: center;
-        color: var(--muted);
+      code {
         font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
           "Courier New", monospace;
-        font-size: 13px;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        font-size: 0.95em;
+        color: rgba(255, 255, 255, 0.84);
       }
-      .kicker .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--accent), var(--accent-2));
-        box-shadow: 0 0 0 6px rgba(239, 90, 60, 0.12);
+
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 46px 20px 60px;
+      }
+
+      .frame {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+        border-radius: 26px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .noise {
+        position: relative;
+        isolation: isolate;
+      }
+      .noise::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.36'/%3E%3C/svg%3E");
+        opacity: 0.11;
+        mix-blend-mode: overlay;
+        pointer-events: none;
+        z-index: 2;
+      }
+      .noise::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(900px 520px at 18% -6%, rgba(205, 159, 46, 0.18), transparent 62%),
+          radial-gradient(760px 560px at 92% 0%, rgba(223, 203, 114, 0.12), transparent 60%),
+          radial-gradient(900px 900px at 50% 130%, rgba(255, 255, 255, 0.08), transparent 62%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 32%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .noise > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 34px 22px 18px;
       }
 
       h1 {
         margin: 0;
-        font-family: "Fraunces", ui-serif, Georgia, serif;
-        font-weight: 650;
-        font-size: clamp(34px, 5.2vw, 56px);
-        letter-spacing: -0.02em;
-        line-height: 1.02;
+        font-family: "Syne", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        font-weight: 800;
+        font-size: clamp(44px, 6.0vw, 76px);
+        letter-spacing: -0.04em;
+        line-height: 0.98;
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.78);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .kicker .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        box-shadow: 0 0 0 6px rgba(205, 159, 46, 0.11);
       }
 
       .sub {
         margin: 0;
-        max-width: 60ch;
+        max-width: 68ch;
         color: var(--muted);
         font-size: 16px;
         line-height: 1.55;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 0 22px 22px;
+      }
+
+      .profile {
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+        overflow: hidden;
+      }
+
+      .profile-inner {
+        display: grid;
+        gap: 12px;
+        padding: 20px;
+      }
+
+      .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .profile-left {
+        display: grid;
+        gap: 10px;
+        justify-items: center;
+        align-content: start;
+      }
+
+      .profile-photo {
+        width: 124px;
+        height: 124px;
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
+      }
+      .profile-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .profile-right {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .profile-name {
+        margin: 0;
+        font-family: "Syne", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: 19px;
+      }
+
+      .profile-handle {
+        margin-top: 2px;
+        color: rgba(255, 255, 255, 0.70);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+      }
+
+      .profile-text {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.6;
+        font-size: 17px;
+        max-width: 56ch;
+      }
+
+      .profile-links {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: auto;
+      }
+
+      .profile-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.18);
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        max-width: 560px;
+      }
+      .profile-link:hover {
+        transform: translateY(-1px);
+        border-color: rgba(205, 159, 46, 0.40);
+        background: rgba(0, 0, 0, 0.26);
+      }
+      .profile-link-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        flex: 0 0 auto;
+      }
+      .profile-link-avatar--round {
+        border-radius: 999px;
+      }
+      .profile-link-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .profile-link-title {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+      .profile-link-title strong {
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .profile-link-title span {
+        color: rgba(255, 255, 255, 0.64);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .profile-link-icon {
+        margin-left: auto;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(205, 159, 46, 0.34);
+        background: linear-gradient(135deg, rgba(205, 159, 46, 0.18), rgba(223, 203, 114, 0.10));
+        flex: 0 0 auto;
+      }
+      .profile-link-icon svg {
+        width: 18px;
+        height: 18px;
+        fill: rgba(255, 255, 255, 0.88);
+      }
+
+      .section {
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+        overflow: hidden;
+      }
+
+      .section h2 {
+        margin: 0;
+        font-family: "Syne", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        letter-spacing: -0.01em;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(0, 0, 0, 0.14);
+      }
+
+      .section-note {
+        color: rgba(255, 255, 255, 0.60);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
       }
 
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 14px;
-        margin-top: 18px;
+        justify-items: center;
+        padding: 14px 16px 16px;
       }
 
       .card {
         grid-column: span 12;
+        width: 100%;
+        max-width: 860px;
         border: 1px solid var(--border);
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
         border-radius: 18px;
-        box-shadow: var(--shadow);
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.38);
         overflow: hidden;
         position: relative;
         transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
       }
       .card:hover {
         transform: translateY(-2px);
-        border-color: rgba(239, 90, 60, 0.35);
+        border-color: rgba(205, 159, 46, 0.40);
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.06));
       }
 
       .card-inner {
-        padding: 18px 18px 16px;
+        padding: 14px;
         display: grid;
         grid-template-columns: 1fr;
         gap: 14px;
+      }
+
+      .thumb {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+        aspect-ratio: 16 / 10;
+        position: relative;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: saturate(1.05) contrast(1.02);
+        transform: scale(1.01);
+      }
+      .thumb::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          rgba(7, 6, 5, 0.62),
+          rgba(7, 6, 5, 0.05) 60%,
+          rgba(7, 6, 5, 0.34)
+        );
+        pointer-events: none;
       }
 
       .title-row {
         display: grid;
         gap: 6px;
       }
-      .title-row h2 {
+      .title-row h3 {
         margin: 0;
-        font-size: 18px;
+        font-size: 17px;
         font-weight: 600;
         letter-spacing: -0.01em;
       }
@@ -165,51 +433,46 @@
         font-size: 12px;
       }
 
-      .cta {
-        display: inline-flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(239, 90, 60, 0.35);
-        background: linear-gradient(135deg, rgba(239, 90, 60, 0.16), rgba(247, 177, 91, 0.10));
-      }
-      .cta strong {
-        font-size: 14px;
-        letter-spacing: -0.01em;
-      }
-      .cta span {
-        color: var(--muted);
-        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-          "Courier New", monospace;
-        font-size: 12px;
-      }
-
-      footer {
-        margin-top: 20px;
-        padding-top: 18px;
-        border-top: 1px solid rgba(255, 255, 255, 0.10);
-        color: var(--dim);
+      .hint {
+        color: rgba(255, 255, 255, 0.56);
         font-size: 13px;
         line-height: 1.5;
       }
 
-      @media (min-width: 820px) {
+      @media (min-width: 860px) {
         .card-inner {
-          grid-template-columns: 1fr auto;
+          grid-template-columns: 190px 1fr;
           align-items: center;
         }
-        .title-row h2 {
-          font-size: 20px;
+
+        .thumb {
+          aspect-ratio: 4 / 3;
+        }
+
+        .content {
+          grid-template-columns: 1fr 1fr;
+          align-items: start;
+        }
+
+        .profile-grid {
+          grid-template-columns: 220px 1fr;
+          gap: 18px;
+        }
+
+        .profile-photo {
+          width: 184px;
+          height: 184px;
+          border-radius: 32px;
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .card {
+        .card,
+        .profile-link {
           transition: none;
         }
-        .card:hover {
+        .card:hover,
+        .profile-link:hover {
           transform: none;
         }
       }
@@ -218,37 +481,81 @@
 
   <body>
     <div class="wrap">
-      <header>
-        <div class="kicker"><span class="dot" aria-hidden="true"></span> витрина</div>
-        <h1>Презентации</h1>
-        <p class="sub">Одна презентация = одна папка. Внутри: <code>index.md</code> (черновик) и <code>index.html</code> (финал, можно руками).</p>
-      </header>
+      <div class="frame noise">
+        <header class="hero">
+          <h1>Slides</h1>
+          <p class="sub">Мои презентации и заметки к докладам.</p>
+        </header>
 
-      <main class="grid" aria-label="Список презентаций">
-        <a class="card" href="./podlodka/" aria-label="Открыть: Строим команду ИИ-агентов">
-          <div class="card-inner">
-            <div class="title-row">
-              <h2>Строим команду ИИ-агентов</h2>
-              <p>Подлодка — заметки про субагентов, контекст и практику в CLI.</p>
-              <div class="meta">
-                <span class="pill">podlodka</span>
-                <span class="pill">ru</span>
-                <span class="pill">slides</span>
+        <div class="content">
+          <section class="profile" aria-label="Обо мне">
+            <div class="profile-inner">
+              <div class="profile-grid">
+                <div class="profile-left">
+                  <div class="profile-photo" aria-hidden="true">
+                    <img src="./assets/nikolay-sheyko-avatar.jpg" alt="" loading="lazy" />
+                  </div>
+                  <div class="profile-name">Николай Шейко</div>
+                </div>
+
+                <div class="profile-right">
+                  <p class="profile-text">
+                    Строил HR-продукты для американского бигтеха. Внедряю AI в чужие бизнесы и команды, пишу про свои ошибки,
+                    находки и выводы.
+                  </p>
+
+                  <div class="profile-links" aria-label="Ссылки">
+                    <a class="profile-link" href="https://t.me/oestick" target="_blank" rel="noreferrer noopener">
+                      <div class="profile-link-avatar profile-link-avatar--round" aria-hidden="true">
+                        <img src="./assets/oestick-avatar.jpg" alt="" loading="lazy" />
+                      </div>
+                      <div class="profile-link-title">
+                        <strong>AI и грабли</strong>
+                        <span>t.me/oestick</span>
+                      </div>
+                      <div class="profile-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="img" aria-label="Telegram">
+                          <path
+                            d="M9.04 15.47 8.7 20.3c.49 0 .7-.21.95-.46l2.28-2.18 4.72 3.46c.86.48 1.47.23 1.7-.8l3.08-14.45v-.01c.29-1.29-.47-1.8-1.3-1.5L1.96 9.02c-1.25.49-1.23 1.19-.22 1.5l4.71 1.47L17.4 5.2c.52-.34 1-.15.6.2L9.04 15.47Z"
+                          />
+                        </svg>
+                      </div>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
+          </section>
 
-            <div class="cta" role="presentation">
-              <strong>Открыть</strong>
-              <span>./podlodka/</span>
+          <section class="section" aria-label="Слайды">
+            <div class="section-head">
+              <h2>Презентации</h2>
             </div>
-          </div>
-        </a>
-      </main>
 
-      <footer>
-        Подсказка: добавляешь новую презу — создаёшь папку <code>&lt;slug&gt;/</code> с <code>index.html</code>, и дописываешь карточку в этот файл.
-      </footer>
+            <main class="grid" aria-label="Список презентаций">
+              <a class="card" href="./podlodka/" aria-label="Открыть: Строим команду ИИ-агентов">
+                <div class="card-inner">
+                  <div class="thumb" aria-hidden="true">
+                    <img src="./podlodka/assets/lost-in-the-middle.png" alt="" loading="lazy" />
+                  </div>
+
+                  <div class="title-row">
+                    <h3>Строим команду ИИ-агентов</h3>
+                    <p>Подлодка — заметки про субагентов, контекст и практику в CLI.</p>
+                    <div class="meta">
+                      <span class="pill">podlodka</span>
+                      <span class="pill">ru</span>
+                      <span class="pill">ai</span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </main>
+          </section>
+        </div>
+
+        <!-- Manual curation: add new deck cards here. -->
+      </div>
     </div>
   </body>
 </html>
-
