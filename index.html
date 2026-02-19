@@ -383,6 +383,13 @@
         filter: saturate(1.05) contrast(1.02);
         transform: scale(1.01);
       }
+      .thumb img.thumb-contain {
+        object-fit: contain;
+        padding: 16px;
+        background: #ffffff;
+        filter: none;
+        transform: none;
+      }
       .thumb::after {
         content: "";
         position: absolute;
@@ -536,7 +543,7 @@
               <a class="card" href="./mike/" aria-label="Открыть: 3 ошибки внедрения ИИ в разработку">
                 <div class="card-inner">
                   <div class="thumb" aria-hidden="true">
-                    <img src="./mike/assets/nikolay-sheyko-avatar.jpg" alt="" loading="lazy" />
+                    <img src="./mike/assets/qr.png" alt="" loading="lazy" class="thumb-contain" />
                   </div>
 
                   <div class="title-row">
