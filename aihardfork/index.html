@@ -297,15 +297,7 @@
     }
 
     const slides = [
-      // 1. QR slide
-      () => (
-        <Slide contentClassName="flex flex-col items-center text-center">
-          <p className="font-mono text-xl text-muted mb-8">slides.grably.tech/aihardfork</p>
-          <img src="./assets/slides-qr.png" alt="QR code" className="w-72 h-72 rounded-2xl border border-border shadow-glow" />
-        </Slide>
-      ),
-
-      // 2. Speaker intro
+      // Speaker intro
       () => (
         <Slide>
           <div className="max-w-6xl mx-auto speaker-layout">
@@ -1207,9 +1199,8 @@
               <CurrentSlide />
             </div>
             <ProgressBar current={current} total={total} />
-            <div className="fixed bottom-5 right-8 font-mono text-base text-dim z-50 select-none flex items-center gap-4">
-              <a href="https://slides.grably.tech/aihardfork" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">slides.grably.tech/aihardfork</a>
-              <span>{String(current + 1).padStart(2, '0')}<span className="text-border mx-1">/</span>{String(total).padStart(2, '0')}</span>
+            <div className="fixed bottom-5 right-8 font-mono text-base text-dim z-50 select-none">
+              {String(current + 1).padStart(2, '0')}<span className="text-border mx-1">/</span>{String(total).padStart(2, '0')}
             </div>
           </div>
 
