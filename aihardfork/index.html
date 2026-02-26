@@ -646,38 +646,6 @@
         </Slide>
       ),
 
-      // Решение – рефакторинг
-      () => (
-        <Slide>
-          <H2>Решение – рефакторинг</H2>
-          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
-            <li>LLMки слишком цепляются за то, что у них уже есть в контексте</li>
-            <li>Опытный разраб отличается <span className="line-through text-dim">умом и сообразительностью</span> ленью и скептицизмом</li>
-          </ul>
-        </Slide>
-      ),
-
-      // Три типа кандидатов
-      () => (
-        <Slide>
-          <H2>Три типа кандидатов</H2>
-          <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto w-full">
-            <Panel className="h-full">
-              <p className="font-display text-xl text-accent mb-3">а) Консерваторы</p>
-              <p className="font-body text-lg text-muted leading-relaxed">Не используют ИИ, считают, что сами пишут код лучше, а ИИ работает только для пет-проектов</p>
-            </Panel>
-            <Panel className="h-full">
-              <p className="font-display text-xl text-accent mb-3">б) Вайбкодеры</p>
-              <p className="font-body text-lg text-muted leading-relaxed">Не напрыгались на граблях, пойдут кодить в режиме ковбоя</p>
-            </Panel>
-            <Panel className="h-full">
-              <p className="font-display text-xl text-accent mb-3">в) AI native инженеры</p>
-              <p className="font-body text-lg text-muted leading-relaxed">Разберут задачу и архитектуру с агентом, поймут в чем проблема, объяснят ее собеседующему</p>
-            </Panel>
-          </div>
-        </Slide>
-      ),
-
       // TL;DR
       () => (
         <Slide>
@@ -777,7 +745,7 @@
         <Slide contentClassName="flex flex-col items-center text-center">
           <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Что делать с Джунами</h2>
           <Panel className="max-w-4xl w-full text-left">
-            <p className="font-body text-xl text-muted mb-6">Плохой ответ: использовать как тренажер менеджерских навыков</p>
+            <p className="font-body text-xl text-muted mb-6 text-center">Плохой ответ: использовать как тренажер менеджерских навыков</p>
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <p className="font-display text-lg text-[#4ade80] mb-3">Плюсы</p>
@@ -804,12 +772,12 @@
           <div className="grid grid-cols-2 gap-4 max-w-5xl mx-auto w-full">
             <SmallPanel>
               <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
-                "Что в твоих инструкциях привело к тому, что ты сделал X?"
+                "Какие есть <span className="text-accent">идиоматичные</span> способы решить эту задачу?"
               </p>
             </SmallPanel>
             <SmallPanel>
               <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
-                "Какие есть <span className="text-accent">идиоматичные</span> способы решить эту задачу?"
+                "Что в твоих инструкциях привело к тому, что ты сделал X?"
               </p>
             </SmallPanel>
             <SmallPanel className="col-span-2">
@@ -1114,7 +1082,7 @@
           <div className="flex gap-12 max-w-5xl mx-auto w-full items-start">
             <ol className="slide-ol space-y-4 font-body text-xl text-[#dbe0ea] leading-relaxed flex-1">
               <li>Что отдавать ИИ, а что делать самому?</li>
-              <li>Внедрение сверху вниз или снизу вверх?</li>
+              <li>На какие грин-флаги обращать внимание на собесе?</li>
               <li>Какие навыки именно мне нужны для роста?</li>
               <li>А что отличается, если мы сами делаем ИИ продукты?</li>
               <li>Как дать ИИ-агента не разработчикам?</li>
@@ -1124,6 +1092,42 @@
               <img src="./assets/all_qr.png" alt="QR code" className="w-52 h-52 rounded-2xl border border-border shadow-glow" />
               <p className="font-body text-base text-muted mt-4 text-center leading-snug">Все доклады<br/>AI Hard Fork</p>
             </div>
+          </div>
+        </Slide>
+      ),
+
+      // === APPENDIX ===
+
+      // Appendix: Решение – рефакторинг
+      () => (
+        <Slide>
+          <p className="font-mono text-sm text-dim mb-6 max-w-5xl mx-auto w-full">Appendix</p>
+          <H2>Решение – рефакторинг</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>LLMки слишком цепляются за то, что у них уже есть в контексте</li>
+            <li>Опытный разраб отличается <span className="line-through text-dim">умом и сообразительностью</span> ленью и скептицизмом</li>
+          </ul>
+        </Slide>
+      ),
+
+      // Appendix: Три типа кандидатов
+      () => (
+        <Slide>
+          <p className="font-mono text-sm text-dim mb-6 max-w-5xl mx-auto w-full">Appendix</p>
+          <H2>Три типа кандидатов</H2>
+          <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto w-full">
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">а) Консерваторы</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Не используют ИИ, считают, что сами пишут код лучше, а ИИ работает только для пет-проектов</p>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">б) Вайбкодеры</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Не напрыгались на граблях, пойдут кодить в режиме ковбоя</p>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">в) AI native инженеры</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Разберут задачу и архитектуру с агентом, поймут в чем проблема, объяснят ее собеседующему</p>
+            </Panel>
           </div>
         </Slide>
       ),
