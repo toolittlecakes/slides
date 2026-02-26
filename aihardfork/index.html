@@ -646,6 +646,38 @@
         </Slide>
       ),
 
+      // Решение – рефакторинг
+      () => (
+        <Slide>
+          <H2>Решение – рефакторинг</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>LLMки слишком цепляются за то, что у них уже есть в контексте</li>
+            <li>Опытный разраб отличается <span className="line-through text-dim">умом и сообразительностью</span> ленью и скептицизмом</li>
+          </ul>
+        </Slide>
+      ),
+
+      // Три типа кандидатов
+      () => (
+        <Slide>
+          <H2>Три типа кандидатов</H2>
+          <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto w-full">
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">а) Консерваторы</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Не используют ИИ, считают, что сами пишут код лучше, а ИИ работает только для пет-проектов</p>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">б) Вайбкодеры</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Не напрыгались на граблях, пойдут кодить в режиме ковбоя</p>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">в) AI native инженеры</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Разберут задачу и архитектуру с агентом, поймут в чем проблема, объяснят ее собеседующему</p>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
       // TL;DR
       () => (
         <Slide>
@@ -1096,41 +1128,6 @@
         </Slide>
       ),
 
-      // === APPENDIX ===
-
-      // Appendix: Решение – рефакторинг
-      () => (
-        <Slide>
-          <p className="font-mono text-sm text-dim mb-6 max-w-5xl mx-auto w-full">Appendix</p>
-          <H2>Решение – рефакторинг</H2>
-          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
-            <li>LLMки слишком цепляются за то, что у них уже есть в контексте</li>
-            <li>Опытный разраб отличается <span className="line-through text-dim">умом и сообразительностью</span> ленью и скептицизмом</li>
-          </ul>
-        </Slide>
-      ),
-
-      // Appendix: Три типа кандидатов
-      () => (
-        <Slide>
-          <p className="font-mono text-sm text-dim mb-6 max-w-5xl mx-auto w-full">Appendix</p>
-          <H2>Три типа кандидатов</H2>
-          <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto w-full">
-            <Panel className="h-full">
-              <p className="font-display text-xl text-accent mb-3">а) Консерваторы</p>
-              <p className="font-body text-lg text-muted leading-relaxed">Не используют ИИ, считают, что сами пишут код лучше, а ИИ работает только для пет-проектов</p>
-            </Panel>
-            <Panel className="h-full">
-              <p className="font-display text-xl text-accent mb-3">б) Вайбкодеры</p>
-              <p className="font-body text-lg text-muted leading-relaxed">Не напрыгались на граблях, пойдут кодить в режиме ковбоя</p>
-            </Panel>
-            <Panel className="h-full">
-              <p className="font-display text-xl text-accent mb-3">в) AI native инженеры</p>
-              <p className="font-body text-lg text-muted leading-relaxed">Разберут задачу и архитектуру с агентом, поймут в чем проблема, объяснят ее собеседующему</p>
-            </Panel>
-          </div>
-        </Slide>
-      ),
     ];
 
     function getInitialSlide() {
