@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3 ошибки внедрения ИИ в разработку</title>
+  <title>Увольнение, найм и обучение команд в эпоху ИИ-агентов</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,6 +99,22 @@
       border-radius: 50%;
       background: #ef5a3c;
       box-shadow: 0 0 0 4px rgba(239, 90, 60, 0.16);
+    }
+
+    ul.slide-list-sm > li {
+      position: relative;
+      padding-left: 1.1rem;
+    }
+    ul.slide-list-sm > li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #ef5a3c;
+      box-shadow: 0 0 0 3px rgba(239, 90, 60, 0.12);
     }
 
     ol.slide-ol {
@@ -212,7 +228,6 @@
       return (
         <Slide className="items-center text-center">
           <div className="w-full flex flex-col items-center">
-            <div className="accent-line mb-8 shadow-glow" />
             <h1 className="font-display text-6xl font-800 tracking-tight leading-tight max-w-5xl">
               {title}
             </h1>
@@ -248,6 +263,14 @@
       );
     }
 
+    function SmallPanel({ children, className = '' }) {
+      return (
+        <div className={`glass rounded-xl p-5 ${className}`}>
+          {children}
+        </div>
+      );
+    }
+
     function ProgressBar({ current, total }) {
       const pct = ((current + 1) / total) * 100;
       return (
@@ -268,12 +291,21 @@
     }
 
     const slides = [
+      // 1. QR slide
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <p className="font-mono text-xl text-muted mb-8">slides.grably.tech/aihardfork</p>
+          <img src="./assets/slides-qr.png" alt="QR code" className="w-72 h-72 rounded-2xl border border-border shadow-glow" />
+        </Slide>
+      ),
+
+      // 2. Speaker intro
       () => (
         <Slide>
           <div className="max-w-6xl mx-auto speaker-layout">
             <div className="speaker-layout-main">
-              <h1 className="font-display text-5xl font-700 tracking-tight leading-tight max-w-5xl">
-                3 ошибки внедрения ИИ в разработку
+              <h1 className="font-display text-4xl font-700 tracking-tight leading-tight max-w-5xl">
+                Увольнение, найм и обучение команд в эпоху ИИ-агентов
               </h1>
               <p className="font-display text-3xl font-700 tracking-tight text-muted mt-4">
                 Николай Шейко
@@ -282,7 +314,7 @@
                 <li>Раньше AI Engineer в US HRTech</li>
                 <li>Делаю кастомные ИИ инструменты для неайтишного бизнеса</li>
                 <li>Для айтишного – обучаю команды использовать AI в разработке</li>
-                <li>Организовываю AI конфы <a href="https://entropy.talk" target="_blank" rel="noopener noreferrer" className="text-dim hover:text-accent transition-colors">(entropy.talk)</a></li>
+                <li>Организовываю AI конфы <span className="text-dim">(entropy.talk)</span></li>
                 <li>Пишу в AI и грабли <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="text-accent font-mono hover:text-[#ff8c70] transition-colors">(@ai_grably)</a></li>
               </ul>
             </div>
@@ -292,14 +324,518 @@
                 alt="Николай Шейко"
                 className="block rounded-2xl border border-border shadow-glow"
               />
+              <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mt-4 px-4 py-3 rounded-2xl border border-border bg-[rgba(0,0,0,0.18)] hover:border-accent/40 hover:bg-[rgba(0,0,0,0.26)] transition-all" style={{maxWidth: 340}}>
+                <div className="w-9 h-9 rounded-full border border-border bg-[rgba(0,0,0,0.25)] overflow-hidden flex-shrink-0">
+                  <img src="./assets/oestick-avatar.jpg" alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-body text-sm font-500 text-[#f8fafc]">AI и грабли</p>
+                  <p className="font-mono text-xs text-dim truncate">t.me/ai_grably</p>
+                </div>
+                <div className="ml-auto w-9 h-9 rounded-full border border-accent/30 bg-gradient-to-br from-accent/20 to-accent/10 flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-[rgba(255,255,255,0.88)]">
+                    <path d="M9.04 15.47 8.7 20.3c.49 0 .7-.21.95-.46l2.28-2.18 4.72 3.46c.86.48 1.47.23 1.7-.8l3.08-14.45v-.01c.29-1.29-.47-1.8-1.3-1.5L1.96 9.02c-1.25.49-1.23 1.19-.22 1.5l4.71 1.47L17.4 5.2c.52-.34 1-.15.6.2L9.04 15.47Z" />
+                  </svg>
+                </div>
+              </a>
             </div>
           </div>
         </Slide>
       ),
 
+      // 3. План
       () => (
         <Slide>
-          <H2>Кейс</H2>
+          <H2>План</H2>
+          <ol className="slide-ol space-y-5 font-body text-2xl text-[#dbe0ea] max-w-4xl mx-auto w-full leading-relaxed">
+            <li>Тренды в индустрии</li>
+            <li>Найм и увольнение</li>
+            <li>Сдвиг в обучении</li>
+            <li>Разбор кейсов внедрения ИИ (и факапов)</li>
+            <li>Todos</li>
+          </ol>
+        </Slide>
+      ),
+
+      // 4. Тренды
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Тренды</h2>
+          <img src="./assets/time-horizon.png" alt="Time horizon" className="w-full max-w-5xl max-h-[420px] object-contain rounded-xl mb-4" />
+          <p className="font-mono text-sm text-dim mb-6">
+            <a href="https://metr.org/time-horizons/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">metr.org/time-horizons/</a>
+          </p>
+          <div className="space-y-3">
+            <p className="font-body text-xl text-[#dbe0ea]">Переход от копайлота к ИИ-работникам, работающим автономно</p>
+            <p className="font-body text-xl text-[#dbe0ea]">Я – менеджер или инструмент?</p>
+          </div>
+        </Slide>
+      ),
+
+      // 5. Проблемы вайбкодинга
+      () => (
+        <Slide>
+          <H2>Проблемы вайбкодинга</H2>
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <ul className="slide-list space-y-5 font-body text-2xl text-[#dbe0ea] leading-relaxed">
+              <li>Новые проекты – быстро упираются в границу сложности</li>
+              <li>Старые проекты – много tacit knowledge</li>
+            </ul>
+            <Panel className="mt-8">
+              <p className="font-body text-xl text-muted leading-relaxed">
+                Границы применимости определяются <span className="text-accent">контекстом на входе</span> и <span className="text-accent">контролем на выходе</span>
+              </p>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // 6. Распределение времени
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Распределение времени</h2>
+          <img src="./assets/time-distribution.png" alt="Time distribution" className="w-full max-w-4xl max-h-[540px] object-contain rounded-xl mx-auto" />
+        </Slide>
+      ),
+
+      // 7. SDLC is dead (2 images)
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">SDLC is dead</h2>
+          <div className="flex gap-6 justify-center items-center max-w-5xl w-full">
+            <img src="./assets/sdlc1.png" alt="SDLC 1" className="max-w-[48%] h-auto max-h-[420px] object-contain rounded-xl" />
+            <img src="./assets/sdlc2.png" alt="SDLC 2" className="max-w-[48%] h-auto max-h-[420px] object-contain rounded-xl" />
+          </div>
+          <p className="font-mono text-sm text-dim mt-4">
+            <a href="https://boristane.com/blog/the-software-development-lifecycle-is-dead/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Boris Tane: The Software Development Lifecycle is Dead</a>
+          </p>
+        </Slide>
+      ),
+
+      // 8. SDLC is dead – Review Curse
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">SDLC is dead</h2>
+          <img src="./assets/sdlc3.png" alt="SDLC Review Curse" className="w-full max-w-3xl max-h-[440px] object-contain rounded-xl mx-auto mb-6" />
+          <p className="font-display text-3xl font-700 text-accent">Review Curse</p>
+        </Slide>
+      ),
+
+      // 9. Суммируем
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Суммируем</h2>
+          <div className="space-y-6 max-w-4xl w-full">
+            <p className="font-body text-2xl text-[#dbe0ea]">Схлопывание этапов разработки</p>
+            <p className="font-body text-2xl text-[#dbe0ea]">Developer → engineering managers</p>
+          </div>
+        </Slide>
+      ),
+
+      // 10. Команды должны и будут меняться
+      () => (
+        <Slide>
+          <H2>Команды должны и будут меняться</H2>
+          <div className="grid grid-cols-2 gap-8 max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-display text-xl text-accent mb-4">Что меняется</p>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+                <li>Изменение состава (найм и увольнение)</li>
+                <li>Обучение</li>
+                <li>Другая структура и процессы</li>
+              </ul>
+            </Panel>
+            <Panel>
+              <p className="font-display text-xl text-accent mb-4">Ключевые навыки</p>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+                <li>Агентность сотрудника {'>'} Агентность агента</li>
+                <li>Архитектура, паттерны</li>
+                <li>Опыт работы с ИИ</li>
+              </ul>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // 11. Найм
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Найм</h2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed text-left">
+            <li>Запрещать ИИ</li>
+            <li>Требовать ИИ</li>
+          </ul>
+        </Slide>
+      ),
+
+      // 12. Проблема – как найти задачи
+      () => (
+        <Slide>
+          <H2>Проблема – как найти задачи</H2>
+          <div className="grid grid-cols-2 gap-8 max-w-5xl mx-auto w-full">
+            <Panel className="flex items-center">
+              <div>
+                <span className="font-display text-xl text-accent mr-3">а)</span>
+                <span className="font-body text-xl text-[#dbe0ea]">Достаточно сложные, чтобы не решаться в один промпт</span>
+              </div>
+            </Panel>
+            <Panel className="flex items-center">
+              <div>
+                <span className="font-display text-xl text-accent mr-3">б)</span>
+                <span className="font-body text-xl text-[#dbe0ea]">Достаточно простые, чтобы успеть решить за собеседование</span>
+              </div>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // Кейс 1. Команда системных аналитиков
+      () => (
+        <Slide>
+          <H2>Кейс 1. Команда системных аналитиков</H2>
+          <div className="max-w-5xl mx-auto w-full space-y-5">
+            <ul className="slide-list space-y-5 font-body text-xl text-[#dbe0ea] leading-relaxed">
+              <li>Света — лид в крупном российском банке</li>
+              <li>Уже делают отдельный AI-native этап</li>
+            </ul>
+            <div className="grid grid-cols-2 gap-6 mt-6">
+              <Panel>
+                <p className="font-display text-lg text-accent mb-2">Проблема 1</p>
+                <p className="font-body text-lg text-[#dbe0ea]">Слишком похоже на обычный этап системного дизайна</p>
+              </Panel>
+              <Panel>
+                <p className="font-display text-lg text-accent mb-2">Проблема 2</p>
+                <p className="font-body text-lg text-[#dbe0ea]">Все, кто хорошо прошел первый этап без ИИ – хорошо проходят и с ИИ</p>
+              </Panel>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      // 18. Вопросы к Свете
+      () => (
+        <Slide>
+          <H2>Вопросы к Свете</H2>
+          <ul className="slide-list space-y-5 font-body text-xl text-[#dbe0ea] leading-relaxed max-w-5xl mx-auto w-full">
+            <li>А как вообще в компании уже используется ИИ?</li>
+            <li>Как ты использовала на последней неделе?</li>
+            <li>Где использовала команда?</li>
+            <li>Про что говорили как про вау-момент?</li>
+            <li>Какие самые геморные задачи перестали быть такими?</li>
+          </ul>
+        </Slide>
+      ),
+
+      // 19. Два кластера задач
+      () => (
+        <Slide>
+          <H2>Два кластера задач</H2>
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <Panel>
+              <div className="flex items-start gap-4">
+                <span className="font-display text-2xl font-700 text-accent mt-0.5">1</span>
+                <div>
+                  <p className="font-body text-xl text-[#dbe0ea]">Формирование и исследование архитектурных концепций</p>
+                  <p className="font-mono text-base text-dim mt-2 italic">масштабный диприсерч и куча итераций сверху – для собесов не подходит</p>
+                </div>
+              </div>
+            </Panel>
+            <Panel className="border-l-2 border-l-accent">
+              <div className="flex items-start gap-4">
+                <span className="font-display text-2xl font-700 text-accent mt-0.5">2</span>
+                <div>
+                  <p className="font-body text-xl text-[#dbe0ea]">Генерация драфтов API контрактов – <span className="text-accent font-600">то, что нужно</span></p>
+                </div>
+              </div>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // 20. Самый важный вопрос
+      () => (
+        <TitleSlide
+          title="Самый важный вопрос"
+          subtitle="Какие паттерны отличают успешных сотрудников от остальных?"
+
+        />
+      ),
+
+      // 21. Грин-флаги
+      () => (
+        <Slide className="py-10">
+          <H2>Грин-флаги</H2>
+          <div className="grid grid-cols-3 gap-4 max-w-5xl mx-auto w-full">
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-3">Постановка задачи ИИ</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Цель, ограничения, критерии качества</li>
+                <li>Декомпозиция на подзадачи</li>
+                <li>Контекст (домен, API/данные)</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-3">Итеративность</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Черновик → проверка → правки → повтор</li>
+                <li>Альтернативы и сравнение</li>
+                <li>Лог допущений</li>
+                <li>Обоснование решений и риски</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-3">Работа с форматами</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Строгие форматы (OpenAPI/JSON/YAML)</li>
+                <li>Валидация схемы</li>
+                <li>Диаграммы и связи между артефактами</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel className="col-span-1">
+              <p className="font-display text-base text-accent mb-3">Управление рисками</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Явные ограничения (SLA, idempotency, пагинация)</li>
+                <li>Негативные сценарии</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel className="col-span-2">
+              <p className="font-display text-base text-accent mb-3">Качество</p>
+              <p className="font-body text-[15px] text-[#dbe0ea] leading-snug">
+                Доводка запроса до качественного результата перед следующим шагом (не куча микро-исправлений)
+              </p>
+            </SmallPanel>
+          </div>
+        </Slide>
+      ),
+
+      // 22. Предложение Свете
+      () => (
+        <Slide>
+          <H2>Предложение</H2>
+          <div className="max-w-5xl mx-auto w-full space-y-6">
+            <Panel>
+              <p className="font-body text-xl text-[#dbe0ea] leading-relaxed">
+                Один этап: <span className="text-accent font-600">40 мин</span> систем дизайна + <span className="text-accent font-600">20 мин</span> генерация драфта контракта из спроектированной системы
+              </p>
+              <p className="font-body text-lg text-muted mt-3">Кандидат уже в контексте — удобно</p>
+            </Panel>
+            <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+              <li>Грин-флаги → чеклисты для интервьюера</li>
+            </ul>
+          </div>
+        </Slide>
+      ),
+
+      // 23. Докручиваем
+      () => (
+        <Slide>
+          <H2>Докручиваем</H2>
+          <div className="max-w-5xl mx-auto w-full space-y-6">
+            <ul className="slide-list space-y-5 font-body text-xl text-[#dbe0ea] leading-relaxed">
+              <li>Не давать делать драфт с нуля</li>
+              <li>Дать готовый, но плохо спроектированный</li>
+              <li>Попросить добавить что-то, что просто так не влезет</li>
+              <li>Наблюдаем за подходом к решению</li>
+            </ul>
+            <Panel className="mt-4">
+              <p className="font-mono text-lg text-muted italic leading-relaxed">
+                "Хороший специалист – знает, как не косячить. Отличный – знает, как исправить, когда кто-то уже накосячил"
+              </p>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // Решение – рефакторинг
+      () => (
+        <Slide>
+          <H2>Решение – рефакторинг</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>LLMки слишком цепляются за то, что у них уже есть в контексте</li>
+            <li>Опытный разраб отличается <span className="line-through text-dim">умом и сообразительностью</span> ленью и скептицизмом</li>
+          </ul>
+        </Slide>
+      ),
+
+      // Три типа кандидатов
+      () => (
+        <Slide>
+          <H2>Три типа кандидатов</H2>
+          <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto w-full">
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">а) Консерваторы</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Не используют ИИ, считают, что сами пишут код лучше, а ИИ работает только для пет-проектов</p>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">б) Вайбкодеры</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Не напрыгались на граблях, пойдут кодить в режиме ковбоя</p>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-3">в) AI native инженеры</p>
+              <p className="font-body text-lg text-muted leading-relaxed">Разберут задачу и архитектуру с агентом, поймут в чем проблема, объяснят ее собеседующему</p>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // TL;DR
+      () => (
+        <Slide>
+          <H2>TL;DR</H2>
+          <ol className="slide-ol space-y-5 font-body text-2xl text-[#dbe0ea] max-w-4xl mx-auto w-full leading-relaxed">
+            <li>Делаем небольшой проект, но с кривой архитектурой</li>
+            <li>Про рефакторинг ничего не говорим</li>
+            <li>Даем фичу, которую в текущую архитектуру без костылей не встроить</li>
+            <li>Наблюдаем</li>
+          </ol>
+        </Slide>
+      ),
+
+      // Мои спекуляции про найм
+      () => (
+        <Slide>
+          <H2>Мои спекуляции про найм</H2>
+          <p className="font-body text-2xl text-[#dbe0ea] mb-8 max-w-5xl mx-auto w-full">Снова появятся тестовые задания</p>
+          <div className="grid grid-cols-2 gap-8 max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-display text-xl text-dim mb-4">Раньше</p>
+              <ul className="slide-list space-y-4 font-body text-lg text-[#dbe0ea]">
+                <li>Простая задачка не показывает реальные навыки</li>
+                <li>Сложная задачка требует слишком много времени и режет конверсию</li>
+              </ul>
+            </Panel>
+            <Panel>
+              <p className="font-display text-xl text-accent mb-4">Сейчас</p>
+              <ul className="slide-list space-y-4 font-body text-lg text-[#dbe0ea]">
+                <li>Можно давать сложные задачки на один вечер</li>
+                <li>Рыночек у работодателя</li>
+              </ul>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // Кейс 2. Найм AI инженера
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Кейс 2. Найм AI инженера</h2>
+          <div className="max-w-4xl w-full space-y-4">
+            <Panel className="flex items-center justify-between">
+              <span className="font-body text-xl text-[#dbe0ea]">US-based startup</span>
+              <span className="font-body text-lg text-muted">Оффлайн агенты</span>
+            </Panel>
+            <div className="space-y-3 mt-6">
+              <div className="glass rounded-xl px-8 py-5 flex items-center justify-between">
+                <span className="font-body text-xl text-[#dbe0ea]">Выполненных тестовых заданий</span>
+                <span className="font-display text-3xl font-700 text-accent">30</span>
+              </div>
+              <div className="glass rounded-xl px-8 py-5 flex items-center justify-between max-w-[85%] mx-auto">
+                <span className="font-body text-xl text-[#dbe0ea]">Прошли AI ревью</span>
+                <span className="font-display text-3xl font-700 text-accent">10</span>
+              </div>
+              <div className="glass rounded-xl px-8 py-5 flex items-center justify-between max-w-[70%] mx-auto">
+                <span className="font-body text-xl text-[#dbe0ea]">Собеседований</span>
+                <span className="font-display text-3xl font-700 text-accent">8</span>
+              </div>
+              <div className="glass rounded-xl px-8 py-5 flex items-center justify-between max-w-[55%] mx-auto">
+                <span className="font-body text-xl text-[#dbe0ea]">Офферов</span>
+                <span className="font-display text-3xl font-700 text-accent">3</span>
+              </div>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      // Критерии для увольнения
+      () => (
+        <Slide>
+          <H2>Критерии для увольнения</H2>
+          <div className="max-w-5xl mx-auto w-full space-y-8">
+            <ul className="slide-list space-y-5 font-body text-xl text-[#dbe0ea] leading-relaxed">
+              <li>Чистый исполнитель (не может ставить задачи и прорабатывать требования)</li>
+              <li>Требует постоянного контроля и проверки результатов</li>
+              <li>Любит писать код</li>
+            </ul>
+            <Panel className="border-l-2 border-l-[#4ade80]">
+              <p className="font-display text-xl text-[#4ade80] mb-3">ВАЖНО: Не увольняем</p>
+              <ul className="slide-list space-y-3 font-body text-lg text-[#dbe0ea]">
+                <li>Душнил-консерваторов! <span className="text-dim">— они будут балансировать энтузиастов</span></li>
+                <li>Людей с tacit knowledge</li>
+              </ul>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // 24. Что делать с Джунами??? (title)
+      () => (
+        <TitleSlide title="Что делать с Джунами???" subtitle="Хорошего ответа нет" />
+      ),
+
+      // 25. Что делать с Джунами (ответ)
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Что делать с Джунами</h2>
+          <Panel className="max-w-4xl w-full text-left">
+            <p className="font-body text-xl text-muted mb-6">Плохой ответ: использовать как тренажер менеджерских навыков</p>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <p className="font-display text-lg text-[#4ade80] mb-3">Плюсы</p>
+                <p className="font-body text-lg text-[#dbe0ea]">Больше обратной связи, чем от машины</p>
+              </div>
+              <div>
+                <p className="font-display text-lg text-accent mb-3">Минусы</p>
+                <p className="font-body text-lg text-[#dbe0ea]">Обратная связь иногда сильно дольше</p>
+              </div>
+            </div>
+          </Panel>
+        </Slide>
+      ),
+
+      // 26. Обучение. Личное
+      () => (
+        <TitleSlide title="Обучение" subtitle="Тупеем или умнеем?" />
+      ),
+
+      // 27. Примеры вопросов
+      () => (
+        <Slide className="py-10">
+          <H2>Примеры вопросов</H2>
+          <div className="grid grid-cols-2 gap-4 max-w-5xl mx-auto w-full">
+            <SmallPanel>
+              <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
+                "Что в твоих инструкциях привело к тому, что ты сделал X?"
+              </p>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
+                "Какие есть <span className="text-accent">идиоматичные</span> способы решить эту задачу?"
+              </p>
+            </SmallPanel>
+            <SmallPanel className="col-span-2">
+              <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
+                "Где в твоем решении могут быть переусложнения, от которых можно избавиться?"
+              </p>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
+                "Расскажи, как можно применить принцип X к нашей задаче (так чтобы это не было натягиванием совы на глобус)"
+              </p>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
+                "Если я спрашиваю или предлагаю какой-то бред, так и скажи – я не очень в этом разбираюсь"
+              </p>
+            </SmallPanel>
+          </div>
+          <p className="font-mono text-base text-dim mt-6 max-w-5xl mx-auto w-full text-left">Note: <span className="text-accent">/fork</span></p>
+        </Slide>
+      ),
+
+      // 28. Кейс 3. Внедрение ИИ в команду
+      () => (
+        <Slide>
+          <H2>Кейс 3. Внедрение ИИ в команду</H2>
           <Panel className="max-w-5xl mx-auto w-full">
             <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed">
               <li>Компания оплачивает ИИ для команды</li>
@@ -310,6 +846,7 @@
         </Slide>
       ),
 
+      // 29. Мой план
       () => (
         <Slide>
           <H2>Мой план</H2>
@@ -335,6 +872,7 @@
         </Slide>
       ),
 
+      // 30. Первые попытки
       () => (
         <Slide>
           <H2>Первые попытки</H2>
@@ -347,10 +885,12 @@
         </Slide>
       ),
 
+      // 31. Что могло пойти не так? (title)
       () => (
         <TitleSlide title="Что могло пойти не так?" />
       ),
 
+      // 32. Ошибка 1. Делать самому
       () => (
         <Slide>
           <H2>Что могло пойти не так?</H2>
@@ -366,6 +906,7 @@
         </Slide>
       ),
 
+      // 33. Ошибка 2. Пытаться работать сразу со всеми
       () => (
         <Slide>
           <H2>Что могло пойти не так?</H2>
@@ -381,6 +922,7 @@
         </Slide>
       ),
 
+      // 34. Ошибка 3. Учить на примере переноса фронта
       () => (
         <Slide>
           <H2>Что могло пойти не так?</H2>
@@ -389,7 +931,7 @@
             <Panel className="h-full">
               <p className="font-display text-2xl text-accent mb-4">Плюсы</p>
               <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
-                <li>Можно граундится об старую реализацию</li>
+                <li>Можно граундиться об старую реализацию</li>
                 <li>Все edge cases уже известны</li>
               </ul>
             </Panel>
@@ -404,10 +946,12 @@
         </Slide>
       ),
 
+      // 35. Результат 0
       () => (
         <TitleSlide title="Результат 0" />
       ),
 
+      // 36. Решение
       () => (
         <Slide>
           <H2>Решение</H2>
@@ -420,9 +964,30 @@
         </Slide>
       ),
 
+      // 37. Повторяющиеся лайфхаки
       () => (
         <Slide>
-          <H2>Рекоммендации</H2>
+          <H2>Повторяющиеся лайфхаки</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <ul className="slide-list space-y-5 font-body text-xl text-[#dbe0ea] leading-relaxed">
+              <li>Plan vs Act</li>
+              <li>Mermaid диаграммы</li>
+              <li>Feedback loop (линтер, typescript, тесты, playwright)</li>
+              <li>Повторяющиеся шаги → <span className="line-through text-dim">Скиллы</span> Скрипты</li>
+              <li>Ревью <span className="text-accent font-600">вместе</span> с агентом (волшебное слово "инварианты")</li>
+              <li>Тесты == спека (всегда sync)</li>
+            </ul>
+            <p className="font-mono text-sm text-dim mt-8">
+              <a href="https://gist.github.com/toolittlecakes/7c15b1304070aa36cd39355db4545c92" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">gist.github.com/toolittlecakes/7c15b1304070aa36cd39355db4545c92</a>
+            </p>
+          </div>
+        </Slide>
+      ),
+
+      // 38. Рекомендации для менеджмента
+      () => (
+        <Slide>
+          <H2>Рекомендации для менеджмента</H2>
           <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
             <li>Прозрачность == Ответственность</li>
             <li>2-3 основных "чемпиона"</li>
@@ -433,16 +998,133 @@
         </Slide>
       ),
 
+
+      // 40. Итоги
+      () => (
+        <Slide className="py-8">
+          <H2>Итоги</H2>
+          <div className="grid grid-cols-3 gap-4 max-w-5xl mx-auto w-full">
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-2">Тренд на автономность → Process engineering</p>
+              <ul className="slide-list-sm space-y-1.5 font-body text-[14px] text-[#dbe0ea]">
+                <li>AI – ваш сотрудник</li>
+                <li>Ваши сотрудники – теперь менеджеры</li>
+                <li>Но не микро-менеджеры!</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-2">Сдвиг в SDLC</p>
+              <ul className="slide-list-sm space-y-1.5 font-body text-[14px] text-[#dbe0ea]">
+                <li>Схлопывание этапов и ролей</li>
+                <li>Синхронность → асинхронность</li>
+                <li>Написание кода → планирование и ревью</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-2">Начинать с низкой цены ошибки</p>
+              <ul className="slide-list-sm space-y-1.5 font-body text-[14px] text-[#dbe0ea]">
+                <li>Рисерч, планирование</li>
+                <li>Бизнес логика</li>
+                <li>E2E тесты (по спеке!)</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel className="col-span-1">
+              <p className="font-display text-base text-accent mb-2">Найм меняется</p>
+              <ul className="slide-list-sm space-y-1.5 font-body text-[14px] text-[#dbe0ea]">
+                <li>Тестовые задания снова ок</li>
+                <li>Требовать ИИ на собесах</li>
+                <li>Менеджерские навыки</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel className="col-span-2">
+              <p className="font-display text-base text-accent mb-2">Процессы и люди первичны, инструменты вторичны</p>
+              <ul className="slide-list-sm space-y-1.5 font-body text-[14px] text-[#dbe0ea]">
+                <li>Играем в долгосрок == важна производная</li>
+                <li>Нельзя оптимизировать то, что не измеряем</li>
+                <li>Внедрение без обучения – не работает</li>
+              </ul>
+            </SmallPanel>
+          </div>
+        </Slide>
+      ),
+
+      // 41. План: Найм
+      () => (
+        <Slide>
+          <H2>План: Найм</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>Задачи на 30-40 минут с агентом</li>
+            <li>Требует экспертности (рефакторинг!)</li>
+            <li>Анализ сессий</li>
+            <li>"Какие инструменты использовали и для каких задач за последний месяц?"</li>
+          </ul>
+        </Slide>
+      ),
+
+      // 42. План: Разработка / Обучение
+      () => (
+        <Slide>
+          <H2>План: Разработка / Обучение</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>Выделить отдельную команду (2-3 человека)</li>
+            <li>Задачи с низкой ценой ошибки, запретить писать код вручную</li>
+            <li>Выгрузка сессий и их анализ (опционально: семинары с best practices)</li>
+            <li>Итерации (human &amp; agent)</li>
+          </ul>
+        </Slide>
+      ),
+
+      // 43. План: NO-DOs
+      () => (
+        <Slide>
+          <H2>План: NO-DOs</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>Архитектурные задачи</li>
+            <li>Отдавать ревью агенту</li>
+            <li>Делать ревью вручную</li>
+            <li>Нанимать "исполнителей"</li>
+            <li>Нанимать "у нас в компании ИИ было нельзя"</li>
+          </ul>
+        </Slide>
+      ),
+
+      // 44. Почитать
       () => (
         <Slide contentClassName="flex flex-col items-center text-center">
-          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight max-w-5xl mx-auto">
-            Приглашаю на конференцию AI Hard Fork
-          </h2>
-          <p className="font-body text-2xl text-muted mt-6 mb-12 max-w-4xl mx-auto leading-relaxed">
-            Как ИИ меняет команды разработки и что уже поздно делать в 2026ом
-          </p>
-          <img src="./assets/qr.png" alt="entropy-x-stratoplan.com" className="w-72 h-72 rounded-2xl border border-border shadow-glow mb-8 mx-auto" />
-          <p className="font-mono text-base text-dim text-center">entropy-x-stratoplan.com</p>
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Почитать</h2>
+          <div className="space-y-6 max-w-4xl w-full">
+            <Panel>
+              <a href="https://openai.com/index/harness-engineering/" target="_blank" rel="noopener noreferrer" className="font-body text-xl text-accent hover:text-[#ff8c70] transition-colors">
+                OpenAI: Harness Engineering
+              </a>
+            </Panel>
+            <Panel>
+              <a href="https://boristane.com/blog/the-software-development-lifecycle-is-dead/" target="_blank" rel="noopener noreferrer" className="font-body text-xl text-accent hover:text-[#ff8c70] transition-colors">
+                The Software Development Lifecycle is Dead
+              </a>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      // 45. Вопросы к самому себе
+      () => (
+        <Slide className="py-10">
+          <H2>Вопросы к самому себе</H2>
+          <div className="flex gap-12 max-w-5xl mx-auto w-full items-start">
+            <ol className="slide-ol space-y-4 font-body text-xl text-[#dbe0ea] leading-relaxed flex-1">
+              <li>Что отдавать ИИ, а что делать самому?</li>
+              <li>Внедрение сверху вниз или снизу вверх?</li>
+              <li>Какие навыки именно мне нужны для роста?</li>
+              <li>А что отличается, если мы сами делаем ИИ продукты?</li>
+              <li>Как дать ИИ-агента не разработчикам?</li>
+              <li>Зачем нам еще быстрее делать фичи?</li>
+            </ol>
+            <div className="flex flex-col items-center flex-shrink-0">
+              <img src="./assets/all_qr.png" alt="QR code" className="w-52 h-52 rounded-2xl border border-border shadow-glow" />
+              <p className="font-body text-base text-muted mt-4 text-center leading-snug">Все доклады<br/>AI Hard Fork</p>
+            </div>
+          </div>
         </Slide>
       ),
     ];
@@ -523,7 +1205,10 @@
               <CurrentSlide />
             </div>
             <ProgressBar current={current} total={total} />
-            <SlideCounter current={current} total={total} />
+            <div className="fixed bottom-5 right-8 font-mono text-base text-dim z-50 select-none flex items-center gap-4">
+              <a href="https://slides.grably.tech/aihardfork" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">slides.grably.tech/aihardfork</a>
+              <span>{String(current + 1).padStart(2, '0')}<span className="text-border mx-1">/</span>{String(total).padStart(2, '0')}</span>
+            </div>
           </div>
 
           <div className="print-only bg-bg">
