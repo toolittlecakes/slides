@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3 ошибки внедрения ИИ в разработку</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['Outfit', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'monospace'],
+          },
+          colors: {
+            bg: '#08090d',
+            surface: '#13151b',
+            border: '#252833',
+            accent: '#ef5a3c',
+            muted: '#adb2bf',
+            dim: '#6f7788',
+          },
+          boxShadow: {
+            glow: '0 0 48px rgba(239, 90, 60, 0.18)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { width: 100vw; height: 100vh; overflow: hidden; background: #08090d; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: lining-nums;
+      font-feature-settings: "lnum" 1;
+      background:
+        radial-gradient(900px 620px at 82% -15%, rgba(239, 90, 60, 0.10), transparent 68%),
+        radial-gradient(760px 520px at -12% 100%, rgba(64, 94, 191, 0.12), transparent 64%),
+        #08090d;
+    }
+
+    .font-display {
+      font-variant-numeric: lining-nums;
+      font-feature-settings: "lnum" 1;
+    }
+
+    .font-mono,
+    .slide-counter,
+    ol.slide-ol > li::before {
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+    }
+
+    .slide-enter { animation: slideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.992); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(19, 21, 27, 0.72), rgba(19, 21, 27, 0.48));
+      border: 1px solid rgba(37, 40, 51, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .accent-line {
+      width: 58px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ef5a3c, #ff8c70);
+    }
+
+    ul.slide-list > li {
+      position: relative;
+      padding-left: 1.45rem;
+    }
+    ul.slide-list > li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.65em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ef5a3c;
+      box-shadow: 0 0 0 4px rgba(239, 90, 60, 0.16);
+    }
+
+    ol.slide-ol {
+      list-style: none;
+      counter-reset: step;
+    }
+    ol.slide-ol > li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 2.7rem;
+    }
+    ol.slide-ol > li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: -0.05em;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15em;
+      font-weight: 700;
+      color: #ef5a3c;
+    }
+
+    .speaker-layout {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      gap: 3.5rem;
+    }
+    .speaker-layout-main {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .speaker-photo-wrap {
+      flex: 0 0 340px;
+      margin-left: auto;
+    }
+    .speaker-photo-wrap img {
+      width: 100%;
+      height: auto;
+      max-width: 340px;
+    }
+
+    @media (max-width: 1200px) {
+      .speaker-layout { gap: 2rem; }
+      .speaker-photo-wrap { flex-basis: 290px; }
+      .speaker-photo-wrap img { max-width: 290px; }
+    }
+
+    @page {
+      size: landscape;
+      margin: 0;
+    }
+    @media print {
+      html, body, #root {
+        width: auto;
+        height: auto;
+        overflow: visible;
+        background: #08090d !important;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .screen-only { display: none !important; }
+      .print-only { display: block !important; }
+      .print-slide {
+        width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+        page-break-after: always;
+        break-after: page;
+        overflow: hidden;
+        background: #08090d !important;
+      }
+      .print-slide > * {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      .print-slide:last-child {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+    }
+    @media screen {
+      .print-only { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    function Slide({ children, className = '', contentClassName = '' }) {
+      return (
+        <div className={`w-full h-full px-40 py-14 flex flex-col justify-center ${className}`}>
+          <div className={`w-full max-w-[1152px] mx-auto ${contentClassName}`}>
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    function TitleSlide({ title, subtitle }) {
+      return (
+        <Slide className="items-center text-center">
+          <div className="w-full flex flex-col items-center">
+            <div className="accent-line mb-8 shadow-glow" />
+            <h1 className="font-display text-6xl font-800 tracking-tight leading-tight max-w-5xl">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="font-body text-2xl text-muted mt-8 max-w-4xl leading-relaxed">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </Slide>
+      );
+    }
+
+    function H2({ children }) {
+      return (
+        <div className="mb-9 max-w-5xl mx-auto w-full">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">{children}</h2>
+        </div>
+      );
+    }
+
+    function H3({ children }) {
+      return (
+        <h3 className="font-display text-3xl font-700 tracking-tight mb-5 max-w-5xl mx-auto w-full">{children}</h3>
+      );
+    }
+
+    function Panel({ children, className = '' }) {
+      return (
+        <div className={`glass rounded-2xl p-8 ${className}`}>
+          {children}
+        </div>
+      );
+    }
+
+    function ProgressBar({ current, total }) {
+      const pct = ((current + 1) / total) * 100;
+      return (
+        <div className="fixed bottom-0 left-0 w-full h-[2px] bg-border z-50">
+          <div className="h-full bg-accent transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
+        </div>
+      );
+    }
+
+    function SlideCounter({ current, total }) {
+      const num = String(current + 1).padStart(2, '0');
+      const tot = String(total).padStart(2, '0');
+      return (
+        <div className="slide-counter fixed bottom-5 right-8 font-mono text-base text-dim z-50 select-none">
+          {num}<span className="text-border mx-1">/</span>{tot}
+        </div>
+      );
+    }
+
+    const slides = [
+      () => (
+        <Slide>
+          <div className="max-w-6xl mx-auto speaker-layout">
+            <div className="speaker-layout-main">
+              <h1 className="font-display text-5xl font-700 tracking-tight leading-tight max-w-5xl">
+                3 ошибки внедрения ИИ в разработку
+              </h1>
+              <p className="font-display text-3xl font-700 tracking-tight text-muted mt-4">
+                Николай Шейко
+              </p>
+              <ul className="slide-list mt-10 space-y-5 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl">
+                <li>Раньше AI Engineer в US HRTech</li>
+                <li>Делаю кастомные ИИ инструменты для неайтишного бизнеса</li>
+                <li>Для айтишного – обучаю команды использовать AI в разработке</li>
+                <li>Организовываю AI конфы <a href="https://entropy.talk" target="_blank" rel="noopener noreferrer" className="text-dim hover:text-accent transition-colors">(entropy.talk)</a></li>
+                <li>Пишу в AI и грабли <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="text-accent font-mono hover:text-[#ff8c70] transition-colors">(@ai_grably)</a></li>
+              </ul>
+            </div>
+            <div className="speaker-photo-wrap">
+              <img
+                src="./assets/nikolay-sheyko-avatar.jpg"
+                alt="Николай Шейко"
+                className="block rounded-2xl border border-border shadow-glow"
+              />
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Кейс</H2>
+          <Panel className="max-w-5xl mx-auto w-full">
+            <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed">
+              <li>Компания оплачивает ИИ для команды</li>
+              <li>Команда пользуется, но кто как умеет, централизированной настройки почти нет</li>
+              <li>Перевозят фронт на новый стек, хотят ускорить за счет ИИ, заодно прокачаться</li>
+            </ul>
+          </Panel>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Мой план</H2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto w-full items-stretch">
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-4">Сначала</p>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+                <li>Пообщаться с командой</li>
+                <li>Процессы разработки</li>
+                <li>Какие тулы используют</li>
+                <li>Как настраивают</li>
+              </ul>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-4">Потом</p>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+                <li>Скорректировать поведение людей</li>
+                <li>Скорректировать поведение агента (CLAUDE.md, Skills, субагенты)</li>
+                <li>Протестировать, сделать еще итерацию, научить делать самим</li>
+              </ul>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Первые попытки</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>Cursor -&gt; Claude Code</li>
+            <li>Опросник для команды (для CLAUDE.md)</li>
+            <li>Замыкание Feedback Loop (линтер, typescript, тесты, playwright)</li>
+            <li>Участие в синках, корректировка решений команды</li>
+          </ul>
+        </Slide>
+      ),
+
+      () => (
+        <TitleSlide title="Что могло пойти не так?" />
+      ),
+
+      () => (
+        <Slide>
+          <H2>Что могло пойти не так?</H2>
+          <H3>Ошибка 1. Делать самому</H3>
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 1: Tacit Knowledge (неявные знания)</p>
+            </Panel>
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 2: Магический артефакт</p>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Что могло пойти не так?</H2>
+          <H3>Ошибка 2. Пытаться работать сразу со всеми</H3>
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 1: Разная степень сопротивления</p>
+            </Panel>
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 2: Разная степень "ИИ-нативности"</p>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Что могло пойти не так?</H2>
+          <H3>Ошибка 3. Учить пользоваться ИИ на примере переноса фронта на новый стек</H3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto w-full items-stretch">
+            <Panel className="h-full">
+              <p className="font-display text-2xl text-accent mb-4">Плюсы</p>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+                <li>Можно граундится об старую реализацию</li>
+                <li>Все edge cases уже известны</li>
+              </ul>
+            </Panel>
+            <Panel className="h-full">
+              <p className="font-display text-2xl text-accent mb-4">Минусы</p>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea]">
+                <li>Тащим старые костыли</li>
+                <li>Очень много архитектурной работы</li>
+              </ul>
+            </Panel>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <TitleSlide title="Результат 0" />
+      ),
+
+      () => (
+        <Slide>
+          <H2>Решение</H2>
+          <ol className="slide-ol space-y-5 font-body text-2xl text-[#dbe0ea] max-w-4xl mx-auto w-full leading-relaxed">
+            <li>Видео, где я сам реализовываю одну фичу</li>
+            <li>Скрипт выгрузки сессий Claude Code</li>
+            <li>Отсматриваю вместе с codex</li>
+            <li>Пишу фидбэк и планы для команды</li>
+          </ol>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Рекоммендации</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>Прозрачность == Ответственность</li>
+            <li>2-3 основных "чемпиона"</li>
+            <li>Отсутствие срочных релизов</li>
+            <li>Все изменения делают сотрудники сами</li>
+            <li>Начинать с простых задач с низкой ценой ошибки</li>
+          </ul>
+        </Slide>
+      ),
+
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight max-w-5xl mx-auto">
+            Приглашаю на конференцию AI Hard Fork
+          </h2>
+          <p className="font-body text-2xl text-muted mt-6 mb-12 max-w-4xl mx-auto leading-relaxed">
+            Как ИИ меняет команды разработки и что уже поздно делать в 2026ом
+          </p>
+          <img src="./assets/qr.png" alt="entropy-x-stratoplan.com" className="w-72 h-72 rounded-2xl border border-border shadow-glow mb-8 mx-auto" />
+          <p className="font-mono text-base text-dim text-center">entropy-x-stratoplan.com</p>
+        </Slide>
+      ),
+    ];
+
+    function getInitialSlide() {
+      const p = new URLSearchParams(window.location.search);
+      const s = parseInt(p.get('slide'), 10);
+      return (!isNaN(s) && s >= 0) ? Math.min(s, slides.length - 1) : 0;
+    }
+
+    function syncURL(n) {
+      const url = new URL(window.location);
+      url.searchParams.set('slide', n);
+      window.history.replaceState(null, '', url);
+    }
+
+    function App() {
+      const [current, setCurrent] = useState(getInitialSlide);
+      const [animKey, setAnimKey] = useState(0);
+      const total = slides.length;
+
+      const go = useCallback((dir) => {
+        setCurrent(prev => {
+          const next = prev + dir;
+          if (next < 0 || next >= total) return prev;
+          syncURL(next);
+          return next;
+        });
+        setAnimKey(k => k + 1);
+      }, [total]);
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+            e.preventDefault();
+            go(1);
+          }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+            e.preventDefault();
+            go(-1);
+          }
+          if (e.key === 'Home') {
+            setCurrent(0);
+            syncURL(0);
+            setAnimKey(k => k + 1);
+          }
+          if (e.key === 'End') {
+            setCurrent(total - 1);
+            syncURL(total - 1);
+            setAnimKey(k => k + 1);
+          }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [go, total]);
+
+      useEffect(() => {
+        let startX = 0;
+        const onTouchStart = (e) => { startX = e.touches[0].clientX; };
+        const onTouchEnd = (e) => {
+          const diff = startX - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 60) go(diff > 0 ? 1 : -1);
+        };
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchend', onTouchEnd, { passive: true });
+        return () => {
+          window.removeEventListener('touchstart', onTouchStart);
+          window.removeEventListener('touchend', onTouchEnd);
+        };
+      }, [go]);
+
+      const CurrentSlide = slides[current];
+
+      return (
+        <>
+          <div className="relative w-screen h-screen bg-bg overflow-hidden screen-only">
+            <div key={animKey} className="w-full h-full slide-enter">
+              <CurrentSlide />
+            </div>
+            <ProgressBar current={current} total={total} />
+            <SlideCounter current={current} total={total} />
+          </div>
+
+          <div className="print-only bg-bg">
+            {slides.map((S, i) => (
+              <div key={i} className="print-slide">
+                <S />
+              </div>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
