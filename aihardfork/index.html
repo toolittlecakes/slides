@@ -433,7 +433,7 @@
           <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Суммируем</h2>
           <div className="space-y-6 max-w-4xl w-full">
             <p className="font-body text-2xl text-[#dbe0ea]">Схлопывание этапов разработки</p>
-            <p className="font-body text-2xl text-[#dbe0ea]">Developer → engineering managers</p>
+            <p className="font-body text-2xl text-[#dbe0ea]">Developer → Engineering Manager</p>
           </div>
         </Slide>
       ),
@@ -558,63 +558,7 @@
         </Slide>
       ),
 
-      // 20. Самый важный вопрос
-      () => (
-        <TitleSlide
-          title="Самый важный вопрос"
-          subtitle="Какие паттерны отличают успешных сотрудников от остальных?"
-
-        />
-      ),
-
-      // 21. Грин-флаги
-      () => (
-        <Slide className="py-10">
-          <H2>Грин-флаги</H2>
-          <div className="grid grid-cols-3 gap-4 max-w-5xl mx-auto w-full">
-            <SmallPanel>
-              <p className="font-display text-base text-accent mb-3">Постановка задачи ИИ</p>
-              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
-                <li>Цель, ограничения, критерии качества</li>
-                <li>Декомпозиция на подзадачи</li>
-                <li>Контекст (домен, API/данные)</li>
-              </ul>
-            </SmallPanel>
-            <SmallPanel>
-              <p className="font-display text-base text-accent mb-3">Итеративность</p>
-              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
-                <li>Черновик → проверка → правки → повтор</li>
-                <li>Альтернативы и сравнение</li>
-                <li>Лог допущений</li>
-                <li>Обоснование решений и риски</li>
-              </ul>
-            </SmallPanel>
-            <SmallPanel>
-              <p className="font-display text-base text-accent mb-3">Работа с форматами</p>
-              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
-                <li>Строгие форматы (OpenAPI/JSON/YAML)</li>
-                <li>Валидация схемы</li>
-                <li>Диаграммы и связи между артефактами</li>
-              </ul>
-            </SmallPanel>
-            <SmallPanel className="col-span-1">
-              <p className="font-display text-base text-accent mb-3">Управление рисками</p>
-              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
-                <li>Явные ограничения (SLA, idempotency, пагинация)</li>
-                <li>Негативные сценарии</li>
-              </ul>
-            </SmallPanel>
-            <SmallPanel className="col-span-2">
-              <p className="font-display text-base text-accent mb-3">Качество</p>
-              <p className="font-body text-[15px] text-[#dbe0ea] leading-snug">
-                Доводка запроса до качественного результата перед следующим шагом (не куча микро-исправлений)
-              </p>
-            </SmallPanel>
-          </div>
-        </Slide>
-      ),
-
-      // 22. Предложение Свете
+      // Предложение Свете
       () => (
         <Slide>
           <H2>Предложение</H2>
@@ -818,14 +762,9 @@
                 "Что в твоих инструкциях привело к тому, что ты сделал X?"
               </p>
             </SmallPanel>
-            <SmallPanel className="col-span-2">
-              <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
-                "Где в твоем решении могут быть переусложнения, от которых можно избавиться?"
-              </p>
-            </SmallPanel>
             <SmallPanel>
               <p className="font-mono text-[15px] text-[#dbe0ea] leading-relaxed italic">
-                "Расскажи, как можно применить принцип X к нашей задаче (так чтобы это не было натягиванием совы на глобус)"
+                "Где в твоем решении могут быть переусложнения, от которых можно избавиться?"
               </p>
             </SmallPanel>
             <SmallPanel>
@@ -1134,6 +1073,62 @@
         </Slide>
       ),
 
+      // === APPENDIX ===
+
+      // Самый важный вопрос
+      () => (
+        <TitleSlide
+          title="Самый важный вопрос"
+          subtitle="Какие паттерны отличают успешных сотрудников от остальных?"
+        />
+      ),
+
+      // Грин-флаги
+      () => (
+        <Slide className="py-10">
+          <H2>Грин-флаги</H2>
+          <div className="grid grid-cols-3 gap-4 max-w-5xl mx-auto w-full">
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-3">Постановка задачи ИИ</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Цель, ограничения, критерии качества</li>
+                <li>Декомпозиция на подзадачи</li>
+                <li>Контекст (домен, API/данные)</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-3">Итеративность</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Черновик → проверка → правки → повтор</li>
+                <li>Альтернативы и сравнение</li>
+                <li>Лог допущений</li>
+                <li>Обоснование решений и риски</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel>
+              <p className="font-display text-base text-accent mb-3">Работа с форматами</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Строгие форматы (OpenAPI/JSON/YAML)</li>
+                <li>Валидация схемы</li>
+                <li>Диаграммы и связи между артефактами</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel className="col-span-1">
+              <p className="font-display text-base text-accent mb-3">Управление рисками</p>
+              <ul className="slide-list-sm space-y-2 font-body text-[15px] text-[#dbe0ea] leading-snug">
+                <li>Явные ограничения (SLA, idempotency, пагинация)</li>
+                <li>Негативные сценарии</li>
+              </ul>
+            </SmallPanel>
+            <SmallPanel className="col-span-2">
+              <p className="font-display text-base text-accent mb-3">Качество</p>
+              <p className="font-body text-[15px] text-[#dbe0ea] leading-snug">
+                Доводка запроса до качественного результата перед следующим шагом (не куча микро-исправлений)
+              </p>
+            </SmallPanel>
+          </div>
+        </Slide>
+      ),
     ];
 
     function getInitialSlide() {
