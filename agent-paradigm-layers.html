@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Где фундамент? · paradigm v2</title>
+<style>
+  :root {
+    --bg: #0e121a;
+    --fg: #d8dce4;
+    --divider: #1d222d;
+
+    /* deterministic (blue) */
+    --blue-fill: #1d3452;
+    --blue-stroke: #5a86b8;
+    --blue-text: #d1e2f5;
+    --blue-glow: #7ba8d9;
+    --blue-sub: #7ba0c4;
+
+    /* warm (LLM + Agent — одинаковая палитра, агент отличается только размером/ореолом) */
+    --warm-fill: #3c2f17;
+    --warm-stroke: #e0a855;
+    --warm-text: #f5d898;
+    --warm-glow: #ffbe6a;
+    --warm-sub: #c89a58;
+
+    --conn: #394455;
+    --conn-active-blue: #9ecae8;
+    --conn-active-warm: #ffcf85;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--bg); color: var(--fg);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+    min-height: 620px;
+  }
+
+  header {
+    padding: 12px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--divider);
+  }
+  .brand { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #7a8192; }
+  .brand b { color: #d8dce4; font-weight: 600; }
+
+  .buttons { display: flex; gap: 8px; }
+  .btn {
+    height: 32px; padding: 0 14px;
+    font-size: 11.5px; letter-spacing: 0.04em;
+    background: #161a22; border: 1px solid #262c38;
+    color: #c2c8d4; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn:hover:not([disabled]) { background: #1e2430; border-color: #394153; color: white; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .btn .dot { width: 6px; height: 6px; border-radius: 50%; background: #6b7280; }
+  .btn.primary { border-color: #4a3620; color: #ffe4b8; }
+  .btn.primary .dot { background: var(--warm-glow); box-shadow: 0 0 6px var(--warm-glow); }
+
+  main {
+    display: grid; grid-template-columns: 1fr 1fr;
+    position: relative; min-height: 0;
+  }
+  main::after {
+    content: "";
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 1px;
+    background: var(--divider);
+  }
+
+  section {
+    position: relative;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: 12px 24px 10px;
+    overflow: hidden; min-height: 0;
+  }
+
+  .viz {
+    position: relative; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .viz svg {
+    width: 100%; height: 100%; max-height: 100%;
+    display: block;
+  }
+
+  .mini-log {
+    height: 20px;
+    margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font: 10.5px ui-monospace, Menlo, monospace;
+    color: #8a93a4;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  /* ─── comparison table at the bottom ─── */
+  .compare {
+    border-top: 1px solid var(--divider);
+    background: #0a0d14;
+    padding: 14px 24px 16px;
+  }
+  .compare-head {
+    font-size: 11.5px;
+    color: #5a6072;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .compare-head .t-left  { color: var(--blue-glow); opacity: 0.75; }
+  .compare-head .t-right { color: var(--warm-glow); opacity: 0.75; }
+  .compare-head .t-mid   { color: #4d5464; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px 32px;
+    align-items: baseline;
+  }
+  .compare-grid .val-left {
+    font: 14px ui-monospace, Menlo, monospace;
+    color: var(--blue-glow);
+    text-align: right;
+  }
+  .compare-grid .val-right {
+    font: 14px ui-monospace, Menlo, monospace;
+    color: var(--warm-glow);
+    text-align: left;
+  }
+  .compare-grid .axis-label {
+    font: italic 14px Georgia, serif;
+    color: #7a8192;
+    text-align: center;
+    padding: 0 6px;
+    white-space: nowrap;
+    position: relative;
+  }
+  .compare-grid .axis-label::before,
+  .compare-grid .axis-label::after {
+    content: "";
+    display: inline-block;
+    width: 22px;
+    height: 1px;
+    background: #2a303c;
+    vertical-align: middle;
+    margin: 0 10px;
+  }
+
+  /* ─── unified block visuals ─── */
+  .block .box {
+    stroke-width: 1.5;
+    transition: filter 0.25s, stroke 0.2s;
+  }
+  .block.blue  .box { fill: var(--blue-fill); stroke: var(--blue-stroke); }
+  .block.warm  .box { fill: var(--warm-fill); stroke: var(--warm-stroke); }
+  .block.agent .box { fill: var(--warm-fill); stroke: var(--warm-stroke); }
+
+  .block .label {
+    font: 600 12px ui-monospace, Menlo, monospace;
+    text-anchor: middle; letter-spacing: 0.02em;
+  }
+  .block.blue  .label { fill: var(--blue-text); }
+  .block.warm  .label { fill: var(--warm-text); }
+  .block.agent .label { fill: var(--warm-text); font-size: 16px; letter-spacing: 0.22em; }
+
+  .block .sub {
+    font: 9.5px ui-monospace, Menlo, monospace;
+    text-anchor: middle; opacity: 0.85;
+  }
+  .block.blue  .sub { fill: var(--blue-sub); }
+  .block.warm  .sub { fill: var(--warm-sub); }
+  .block.agent .sub { fill: var(--warm-sub); font-size: 9.5px; opacity: 0.9; }
+
+  .block.active.blue  .box { filter: drop-shadow(0 0 7px var(--blue-glow)); stroke-width: 2; }
+  .block.active.warm  .box { filter: drop-shadow(0 0 8px var(--warm-glow)); stroke-width: 2; }
+  .block.active.agent .box { filter: drop-shadow(0 0 14px var(--warm-glow)); stroke-width: 2; }
+
+  .agent-halo { fill: none; stroke: var(--warm-glow); opacity: 0.4; }
+  @keyframes halo-rot { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  .agent-halo.rot {
+    animation: halo-rot 18s linear infinite;
+    transform-origin: center; transform-box: fill-box;
+  }
+  .agent-halo.rot.fast { animation-duration: 5s; }
+
+  /* connectors */
+  .conn {
+    stroke: var(--conn);
+    stroke-width: 1.3;
+    fill: none;
+    transition: stroke 0.2s, stroke-width 0.2s, opacity 0.2s;
+  }
+  .conn.dashed { stroke-dasharray: 3 4; opacity: 0.65; }
+  .conn.active {
+    stroke: var(--conn-active-blue);
+    stroke-width: 2;
+    stroke-dasharray: none;
+    opacity: 1;
+  }
+  .conn.active.to-warm { stroke: var(--conn-active-warm); }
+  .arrow { fill: var(--conn); transition: fill 0.2s; }
+  .arrow.active { fill: var(--conn-active-blue); }
+  .arrow.active.to-warm { fill: var(--conn-active-warm); }
+
+  /* packet */
+  .packet { r: 4.5; opacity: 0; transition: opacity 0.15s; }
+  .packet.show { opacity: 1; }
+  .packet.blue { fill: var(--conn-active-blue); filter: drop-shadow(0 0 5px var(--conn-active-blue)); }
+  .packet.warm { fill: var(--conn-active-warm); filter: drop-shadow(0 0 5px var(--conn-active-warm)); }
+
+  .spine-cap {
+    font: italic 11px Georgia, serif;
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">где лежит <b>фундамент</b> · одна задача, две архитектуры</div>
+    <div class="buttons">
+      <button class="btn" id="run-l"><span class="dot"></span>слева</button>
+      <button class="btn" id="run-r"><span class="dot"></span>справа</button>
+      <button class="btn primary" id="run-both"><span class="dot"></span>оба сразу</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ═══ LEFT: pipeline, blue backbone + LLM called from the middle ═══ -->
+    <section class="left">
+      <div class="viz">
+        <svg id="svg-l" viewBox="0 0 480 360" preserveAspectRatio="xMidYMid meet">
+          <!-- spine baseline + label -->
+          <line x1="20" y1="266" x2="460" y2="266" stroke="#2a3342" stroke-width="1" stroke-dasharray="2 3"/>
+          <text x="240" y="283" text-anchor="middle" class="spine-cap" fill="#4a5468">← backbone: chain of steps →</text>
+
+          <!-- LLM block (same warm palette as agent) -->
+          <g class="block warm" id="b-llm" transform="translate(240 90)">
+            <rect class="box" x="-75" y="-24" width="150" height="48" rx="5"/>
+            <text class="label" y="-2">LLM.classify</text>
+            <text class="sub" y="12">prompt.md · json schema</text>
+          </g>
+
+          <!-- two pipes: up (build_prompt) and down (parse_reply) -->
+          <line class="conn" id="pipe-up"   x1="230" y1="196" x2="230" y2="122"/>
+          <path class="arrow" id="arr-up"   d="M 230 118 l -3.5 6 l 7 0 z"/>
+          <line class="conn" id="pipe-down" x1="250" y1="122" x2="250" y2="196"/>
+          <path class="arrow" id="arr-down" d="M 250 196 l -3.5 -6 l 7 0 z"/>
+          <text x="214" y="162" class="spine-cap" fill="#5a6272" text-anchor="end" font-size="9.5">build_prompt</text>
+          <text x="266" y="162" class="spine-cap" fill="#5a6272" font-size="9.5">parse_reply</text>
+
+          <!-- connectors between blue blocks -->
+          <g>
+            <line class="conn" x1="100" y1="220" x2="110" y2="220"/>
+            <path class="arrow" d="M 110 220 l -6 -3.5 l 0 7 z"/>
+            <line class="conn" x1="190" y1="220" x2="200" y2="220"/>
+            <path class="arrow" d="M 200 220 l -6 -3.5 l 0 7 z"/>
+            <line class="conn" x1="280" y1="220" x2="290" y2="220"/>
+            <path class="arrow" d="M 290 220 l -6 -3.5 l 0 7 z"/>
+            <line class="conn" x1="370" y1="220" x2="380" y2="220"/>
+            <path class="arrow" d="M 380 220 l -6 -3.5 l 0 7 z"/>
+          </g>
+
+          <!-- cron / done labels pulled inward to stay inside the letterboxed svg -->
+          <text x="36" y="195" fill="#5a6272" font-size="9.5" font-family="ui-monospace" text-anchor="middle">cron</text>
+          <text x="36" y="207" fill="#5a6272" font-size="9.5" font-family="ui-monospace" text-anchor="middle">10:00</text>
+          <path class="arrow" d="M 50 220 l -6 -3.5 l 0 7 z" fill="#394455"/>
+          <text x="444" y="211" fill="#5a6272" font-size="9.5" font-family="ui-monospace" text-anchor="middle">done</text>
+
+          <!-- 5 blue blocks, horizontal chain -->
+          <g class="block blue" id="b1" transform="translate(60 220)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">fetch</text>
+            <text class="sub" y="12">api · imap</text>
+          </g>
+          <g class="block blue" id="b2" transform="translate(150 220)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">parse</text>
+            <text class="sub" y="12">pydantic</text>
+          </g>
+          <g class="block blue" id="b3" transform="translate(240 220)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">enrich</text>
+            <text class="sub" y="12">+ LLM-step</text>
+          </g>
+          <g class="block blue" id="b4" transform="translate(330 220)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">store</text>
+            <text class="sub" y="12">postgres</text>
+          </g>
+          <g class="block blue" id="b5" transform="translate(420 220)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">send</text>
+            <text class="sub" y="12">telegram</text>
+          </g>
+
+          <!-- packet -->
+          <circle class="packet" id="packet-l" cx="20" cy="220"/>
+        </svg>
+      </div>
+      <div class="mini-log" id="log-l">&nbsp;</div>
+    </section>
+
+    <!-- ═══ RIGHT: agent foundation + tools ═══ -->
+    <section class="right">
+      <div class="viz">
+        <svg id="svg-r" viewBox="0 0 480 360" preserveAspectRatio="xMidYMid meet">
+          <!-- rays from agent (drawn first so tool blocks overlap line ends) -->
+          <g id="rays">
+            <line class="conn dashed" id="ray-t1" x1="240" y1="290" x2="67"  y2="190"/>
+            <line class="conn dashed" id="ray-t2" x1="240" y1="290" x2="140" y2="117"/>
+            <line class="conn dashed" id="ray-t3" x1="240" y1="290" x2="240" y2="90"/>
+            <line class="conn dashed" id="ray-t4" x1="240" y1="290" x2="340" y2="117"/>
+            <line class="conn dashed" id="ray-t6" x1="240" y1="290" x2="413" y2="190"/>
+          </g>
+
+          <!-- halo rings -->
+          <g transform="translate(240 290)">
+            <circle class="agent-halo rot"      r="72" stroke-width="0.8" stroke-dasharray="3 5"/>
+            <circle class="agent-halo rot fast" r="62" stroke-width="0.6" stroke-dasharray="2 3" style="animation-direction: reverse"/>
+          </g>
+
+          <!-- agent block (same warm palette as LLM blocks) -->
+          <g class="block agent" id="agent" transform="translate(240 290)">
+            <rect class="box" x="-85" y="-30" width="170" height="60" rx="8"/>
+            <text class="label" y="-4">AGENT</text>
+            <text class="sub" y="14">codex · claude · on a laptop</text>
+          </g>
+
+          <!-- ground baseline + label -->
+          <line x1="30" y1="336" x2="450" y2="336" stroke="#252b38" stroke-dasharray="3 4"/>
+          <text x="240" y="351" class="spine-cap" text-anchor="middle" fill="#4a5468">← фундамент: один агент держит всё →</text>
+
+          <!-- 5 tools in symmetric arc above agent (single warm LLM tool — 11labs at apex) -->
+          <g class="block blue" id="t1" transform="translate(67 190)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">fetch_tix</text>
+            <text class="sub" y="12">script</text>
+          </g>
+          <g class="block blue" id="t2" transform="translate(140 117)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">gmail_mcp</text>
+            <text class="sub" y="12">tool (mcp)</text>
+          </g>
+          <g class="block warm" id="t3" transform="translate(240 90)">
+            <rect class="box" x="-48" y="-24" width="96" height="48" rx="5"/>
+            <text class="label" y="-2">11labs.tts</text>
+            <text class="sub" y="12">txt → mp3</text>
+          </g>
+          <g class="block blue" id="t4" transform="translate(340 117)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">notion_get</text>
+            <text class="sub" y="12">tool (mcp)</text>
+          </g>
+          <g class="block blue" id="t6" transform="translate(413 190)">
+            <rect class="box" x="-40" y="-24" width="80" height="48" rx="5"/>
+            <text class="label" y="-2">send_tg</text>
+            <text class="sub" y="12">skill</text>
+          </g>
+
+          <!-- packets (two for parallel fan-out) -->
+          <circle class="packet" id="packet-r"  cx="240" cy="290"/>
+          <circle class="packet" id="packet-r2" cx="240" cy="290"/>
+        </svg>
+      </div>
+      <div class="mini-log" id="log-r">&nbsp;</div>
+    </section>
+  </main>
+
+  <!-- ═══ comparison table ═══ -->
+  <div class="compare">
+    <div class="compare-head">
+      <span class="t-left">pipeline · blue backbone</span>
+      <span class="t-mid">одна задача — дневной дайджест</span>
+      <span class="t-right">agent · warm foundation</span>
+    </div>
+    <div class="compare-grid">
+      <div class="val-left">синяя цепь · код</div>
+      <div class="axis-label">кто ведёт процесс</div>
+      <div class="val-right">оранжевый агент</div>
+
+      <div class="val-left">один из шагов в пайплайне</div>
+      <div class="axis-label">роль LLM</div>
+      <div class="val-right">ведёт весь жизненный цикл</div>
+
+      <div class="val-left">pydantic · openapi</div>
+      <div class="axis-label">контракт между шагами</div>
+      <div class="val-right">естеств. язык + JSON</div>
+
+      <div class="val-left">PR → review → deploy</div>
+      <div class="axis-label">цена правки порядка</div>
+      <div class="val-right">абзац в PROMPT.md</div>
+
+      <div class="val-left">падает · будит on-call</div>
+      <div class="axis-label">если что-то не так</div>
+      <div class="val-right">импровизирует · пишет в телегу</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  function tween(dur, onStep) {
+    return new Promise((resolve) => {
+      const start = performance.now();
+      const frame = (now) => {
+        const t = Math.min(1, (now - start) / dur);
+        const e = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+        onStep(e, t);
+        if (t < 1) requestAnimationFrame(frame);
+        else resolve();
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+
+  function setPacket(id, x, y, show) {
+    const p = $(id);
+    p.setAttribute('cx', x);
+    p.setAttribute('cy', y);
+    if (show !== undefined) p.classList.toggle('show', show);
+  }
+
+  async function moveTo(id, pos, x, y, dur) {
+    const sx = pos.x, sy = pos.y;
+    await tween(dur, (e) => {
+      pos.x = sx + (x-sx)*e;
+      pos.y = sy + (y-sy)*e;
+      setPacket(id, pos.x, pos.y);
+    });
+  }
+
+  // ═══════════ LEFT ═══════════
+  const leftChain = [
+    { id: 'b1', x: 60,  text: '[pipeline] fetch · api + imap' },
+    { id: 'b2', x: 150, text: '[pipeline] parse · pydantic ok' },
+    { id: 'b3', x: 240, text: '[pipeline] enrich · need LLM step' },
+    { id: 'b4', x: 330, text: '[pipeline] store · postgres upsert' },
+    { id: 'b5', x: 420, text: '[pipeline] send · telegram ok' },
+  ];
+
+  function clearLeft() {
+    ['b1','b2','b3','b4','b5','b-llm'].forEach(id => $(id).classList.remove('active'));
+    ['pipe-up','pipe-down'].forEach(id => $(id).classList.remove('active','to-warm'));
+    ['arr-up','arr-down'].forEach(id => $(id).classList.remove('active','to-warm'));
+  }
+
+  async function runLeft() {
+    setLog('l', '');
+    clearLeft();
+    const packet = $('packet-l');
+    packet.setAttribute('class', 'packet blue');
+    const pos = { x: 20, y: 220 };
+    setPacket('packet-l', pos.x, pos.y, true);
+
+    // blue chain b1 → b2 → b3
+    for (let i = 0; i < 3; i++) {
+      const step = leftChain[i];
+      setLog('l', '» ' + step.text);
+      await moveTo('packet-l', pos, step.x, 220, 620);
+      $(step.id).classList.add('active');
+      await sleep(330);
+      if (i < 2) $(step.id).classList.remove('active');
+    }
+
+    // at b3: call LLM (up)
+    setLog('l', '» b3 → LLM.classify(email)');
+    $('pipe-up').classList.add('active', 'to-warm');
+    $('arr-up').classList.add('active', 'to-warm');
+    await moveTo('packet-l', pos, 230, 122, 380);
+    packet.setAttribute('class', 'packet warm show');
+    await moveTo('packet-l', pos, 240, 90, 190);
+    $('b-llm').classList.add('active');
+    // orbit inside the LLM box
+    await tween(700, (e) => {
+      const a = e * Math.PI * 2;
+      pos.x = 240 + Math.cos(a) * 28;
+      pos.y = 90 + Math.sin(a) * 12;
+      setPacket('packet-l', pos.x, pos.y);
+    });
+    setLog('l', '» LLM → { type:"bug", urgency:"high" }');
+    $('pipe-down').classList.add('active', 'to-warm');
+    $('arr-down').classList.add('active', 'to-warm');
+    await moveTo('packet-l', pos, 250, 122, 190);
+    await moveTo('packet-l', pos, 250, 196, 340);
+    $('b-llm').classList.remove('active');
+    setTimeout(() => {
+      $('pipe-up').classList.remove('active','to-warm');
+      $('pipe-down').classList.remove('active','to-warm');
+      $('arr-up').classList.remove('active','to-warm');
+      $('arr-down').classList.remove('active','to-warm');
+    }, 280);
+    packet.setAttribute('class', 'packet blue show');
+    await moveTo('packet-l', pos, 240, 220, 200);
+    $('b3').classList.remove('active');
+
+    // continue chain
+    for (let i = 3; i < leftChain.length; i++) {
+      const step = leftChain[i];
+      setLog('l', '» ' + step.text);
+      await moveTo('packet-l', pos, step.x, 220, 560);
+      $(step.id).classList.add('active');
+      await sleep(330);
+      $(step.id).classList.remove('active');
+    }
+    await moveTo('packet-l', pos, 460, 220, 330);
+    packet.classList.remove('show');
+    setLog('l', 'ok · pipeline done · cron спит');
+  }
+
+  // ═══════════ RIGHT ═══════════
+  // Each entry is a group. Items inside a group fire in parallel.
+  // Порядок намеренно «прыгает» — агент сам решает что и когда дёргать,
+  // и при необходимости возвращается к уже использованному тулу (итерация).
+  const rightSteps = [
+    [
+      { tool: 't2', kind: 'blue', packet: 'packet-r',
+        text: 'agent → gmail_mcp ∥ fetch_tix · собирает входящие параллельно' },
+      { tool: 't1', kind: 'blue', packet: 'packet-r2' },
+    ],
+    [{ tool: 't4', kind: 'blue', text: 'notion_get(/team/sprint) · добирает контекст спринта' }],
+    [{ tool: 't1', kind: 'blue', text: 'в письме упомянут #234 → fetch_tix(id=234) · идёт за деталями' }],
+    [{ tool: 't3', kind: 'warm', text: 'дайджест готов → 11labs.tts() · озвучка для босса' }],
+    [{ tool: 't6', kind: 'blue', text: 'send_tg → текст + voice · done' }],
+  ];
+  const toolPos = {
+    t1: { x: 67,  y: 190 },
+    t2: { x: 140, y: 117 },
+    t3: { x: 240, y: 90  },
+    t4: { x: 340, y: 117 },
+    t6: { x: 413, y: 190 },
+  };
+  const AGENT = { x: 240, y: 290 };
+
+  function clearRight() {
+    ['t1','t2','t3','t4','t6'].forEach(id => {
+      $(id).classList.remove('active');
+      $(`ray-${id}`).classList.remove('active','to-warm');
+    });
+    $('agent').classList.remove('active');
+  }
+
+  async function fireRay(toolId, kind, packetId = 'packet-r') {
+    const ray = $(`ray-${toolId}`);
+    const tool = $(toolId);
+    const packet = $(packetId);
+    packet.setAttribute('class', `packet ${kind} show`);
+    ray.classList.add('active');
+    if (kind === 'warm') ray.classList.add('to-warm');
+    const c = toolPos[toolId];
+    await tween(440, (e) => {
+      packet.setAttribute('cx', AGENT.x + (c.x - AGENT.x) * e);
+      packet.setAttribute('cy', AGENT.y + (c.y - AGENT.y) * e);
+    });
+    tool.classList.add('active');
+    await sleep(320);
+    await tween(340, (e) => {
+      packet.setAttribute('cx', c.x + (AGENT.x - c.x) * e);
+      packet.setAttribute('cy', c.y + (AGENT.y - c.y) * e);
+    });
+    packet.classList.remove('show');
+    setTimeout(() => {
+      tool.classList.remove('active');
+      ray.classList.remove('active','to-warm');
+    }, 280);
+  }
+
+  async function runRight() {
+    setLog('r', '');
+    clearRight();
+    $('agent').classList.add('active');
+    document.querySelectorAll('.agent-halo').forEach(h => h.classList.add('fast'));
+    await sleep(200);
+    for (const group of rightSteps) {
+      const withText = group.find(s => s.text);
+      if (withText) setLog('r', '~ ' + withText.text);
+      await Promise.all(group.map(s => fireRay(s.tool, s.kind, s.packet)));
+      await sleep(280);
+    }
+    document.querySelectorAll('.agent-halo').forEach(h => h.classList.remove('fast'));
+    setLog('r', 'дайджест ушёл · агент ждёт завтрашнего запуска');
+    setTimeout(() => $('agent').classList.remove('active'), 600);
+  }
+
+  // ═══════════ utils ═══════════
+  function setLog(side, text) { $(`log-${side}`).textContent = text || '\u00A0'; }
+
+  const running = { l: false, r: false };
+  async function wrap(side, runner) {
+    if (running[side]) return;
+    running[side] = true;
+    refreshButtons();
+    try { await runner(); } finally {
+      running[side] = false;
+      refreshButtons();
+    }
+  }
+  function refreshButtons() {
+    $('run-l').disabled = running.l;
+    $('run-r').disabled = running.r;
+    $('run-both').disabled = running.l || running.r;
+  }
+
+  $('run-l').addEventListener('click', () => wrap('l', runLeft));
+  $('run-r').addEventListener('click', () => wrap('r', runRight));
+  $('run-both').addEventListener('click', () => {
+    wrap('l', runLeft);
+    wrap('r', runRight);
+  });
+})();
+</script>
+</body>
+</html>
