@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Как агент подключается к внешним сервисам</title>
+<style>
+  :root {
+    --bg: #f5f4ee;
+    --surface: #ffffff;
+    --text: #1a1918;
+    --muted: #6b6a64;
+    --subtle: #9a998f;
+    --border: #e3e2dc;
+    --border-strong: #d5d4cd;
+    --blue: #2563eb;
+    --blue-dark: #1e40af;
+    --blue-soft: #dbeafe;
+    --amber: #d97706;
+    --amber-dark: #b45309;
+    --amber-soft: #fed7aa;
+    --green: #059669;
+    --green-dark: #047857;
+    --green-soft: #d1fae5;
+    --rose: #be185d;
+    --rose-dark: #9f1239;
+    --rose-soft: #ffe4e6;
+    --red: #dc2626;
+    --term-bg: #1a1918;
+    --term-text: #e8e6df;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  header {
+    margin-bottom: 44px;
+    max-width: 820px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+    margin-bottom: 18px;
+  }
+  h1 em { font-style: normal; color: var(--muted); font-weight: 500; }
+  .subtitle { font-size: 19px; color: var(--muted); }
+
+  .section-head {
+    margin-bottom: 22px;
+    max-width: 780px;
+  }
+  .section-head h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .section-head p {
+    color: var(--muted);
+    font-size: 15.5px;
+  }
+
+  /* --- Architecture diagram --- */
+  .architecture {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin-bottom: 40px;
+  }
+  .architecture h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin-bottom: 6px;
+  }
+  .arch-intro { color: var(--muted); font-size: 14.5px; margin-bottom: 24px; }
+  .arch-box { display: flex; flex-direction: column; }
+  .arch-row {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 28px;
+    align-items: stretch;
+  }
+  .arch-entry {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: #fafaf5;
+    border: 1px dashed var(--border-strong);
+    position: relative;
+  }
+  .arch-entry.browser-entry { border-color: var(--blue); background: var(--blue-soft); }
+  .arch-entry.api-entry { border-color: var(--green); background: var(--green-soft); }
+  .arch-entry::after {
+    content: '←';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .arch-entry.browser-entry::after { color: var(--blue); }
+  .arch-entry.api-entry::after { color: var(--green); }
+  .arch-entry strong { font-size: 14.5px; font-weight: 600; display: block; margin-bottom: 2px; }
+  .arch-entry span { font-size: 12.5px; color: var(--muted); }
+
+  .arch-layer {
+    padding: 18px 22px;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    background: #fcfcf8;
+    position: relative;
+  }
+  .arch-layer.frontend { border-left: 4px solid var(--blue); }
+  .arch-layer.backend { border-left: 4px solid var(--green); }
+  .layer-header { display: flex; gap: 14px; align-items: center; margin-bottom: 6px; }
+  .layer-icon { font-size: 22px; line-height: 1; }
+  .layer-title { font-size: 16px; font-weight: 600; }
+  .layer-sub { font-size: 12px; color: var(--muted); }
+  .layer-body { font-size: 14px; color: var(--text); margin-left: 36px; line-height: 1.5; }
+
+  .arch-connector { display: grid; grid-template-columns: 1fr 220px; gap: 28px; }
+  .connector-label { padding: 8px 0; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
+
+  .arch-note {
+    margin-top: 22px;
+    padding: 16px 20px;
+    background: #fbf9f0;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .arch-note p { margin-bottom: 8px; }
+  .arch-note p:last-child { margin-bottom: 0; }
+  .arch-note ul { margin: 8px 0 12px; padding-left: 20px; }
+  .arch-note li { margin-bottom: 5px; font-size: 14px; }
+  .arch-note em { font-style: italic; color: var(--amber-dark); }
+
+  /* --- Primary two-path cards --- */
+  .primary { margin-bottom: 40px; }
+  .primary-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .primary-card {
+    background: var(--surface);
+    padding: 26px 28px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .primary-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 22px; bottom: 22px;
+    width: 4px;
+    border-radius: 0 3px 3px 0;
+  }
+  .primary-card.user::before { background: var(--blue); }
+  .primary-card.official::before { background: var(--green); }
+  .primary-card .card-kicker {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .primary-card h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .primary-card.user h3 { color: var(--blue-dark); }
+  .primary-card.official h3 { color: var(--green-dark); }
+  .primary-card p { font-size: 14.5px; color: var(--muted); margin-bottom: 12px; }
+  .primary-card em {
+    display: block;
+    font-style: normal;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 14.5px;
+  }
+
+  /* --- Demo controls --- */
+  .demo { margin-bottom: 48px; }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .task { font-size: 14.5px; color: var(--muted); margin-right: auto; }
+  .task strong { color: var(--text); font-weight: 600; }
+
+  .run-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border: 1px solid var(--text);
+    background: var(--text);
+    color: #f5f4ee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.08s, opacity 0.15s;
+  }
+  button:hover:not(:disabled) { opacity: 0.88; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  .mode-toggle {
+    display: inline-flex;
+    background: #e5e4dd;
+    border-radius: 9px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .mode-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mode-toggle button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .mode-toggle button:hover:not(.active) { color: var(--text); }
+
+  /* --- Panes --- */
+  .pane-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .pane {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .pane-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #fafaf5;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 100px;
+    color: white;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    background: var(--blue);
+  }
+  .badge.script { background: var(--amber); }
+  .badge.official { background: var(--green); }
+  .badge.unofficial { background: var(--rose); }
+  .metric {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .metric .status {
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 100px;
+    margin-left: 6px;
+    display: none;
+  }
+  .metric .status.ok { background: var(--green-soft); color: var(--green-dark); display: inline-block; }
+  .metric .status.fail { background: #fee2e2; color: var(--red); display: inline-block; }
+  .metric .status.warn { background: var(--amber-soft); color: var(--amber-dark); display: inline-block; }
+
+  /* --- Mock browser --- */
+  .mock-browser {
+    position: relative;
+    height: 340px;
+    background: #eeece6;
+    overflow: hidden;
+  }
+  .browser-chrome {
+    height: 30px;
+    background: #e0ded7;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 6px;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #bdbbb3; }
+  .url-bar {
+    margin-left: 10px;
+    background: white;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    flex: 1;
+    max-width: 260px;
+    font-family: ui-monospace, monospace;
+  }
+  .browser-viewport {
+    position: relative;
+    height: calc(100% - 30px);
+    background: white;
+    overflow: hidden;
+  }
+
+  .gmail { display: flex; height: 100%; }
+  .gmail-sidebar {
+    width: 128px;
+    background: #f2f1ea;
+    padding: 14px 10px;
+    border-right: 1px solid var(--border);
+  }
+  .compose-btn {
+    background: #c6dafc;
+    color: #1a1918;
+    padding: 9px 12px;
+    border-radius: 18px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    transition: background 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+  }
+  .compose-btn.highlight { background: #97b9ff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); }
+  .sidebar-items { margin-top: 14px; display: flex; flex-direction: column; gap: 2px; }
+  .sidebar-item { padding: 5px 8px; font-size: 11.5px; color: var(--muted); border-radius: 4px; }
+  .sidebar-item.active { background: #fff; color: var(--text); font-weight: 500; }
+  .gmail-inbox { flex: 1; padding: 6px; font-size: 11.5px; overflow: hidden; }
+  .inbox-item {
+    padding: 7px 10px;
+    border-bottom: 1px solid #f3f2ec;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+  }
+  .inbox-item b { color: var(--text); font-weight: 600; min-width: 60px; }
+
+  .compose-modal {
+    position: absolute;
+    right: 16px;
+    bottom: 0;
+    width: 290px;
+    height: 220px;
+    background: white;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    border-radius: 8px 8px 0 0;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.35s, opacity 0.35s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .compose-modal.open { transform: translateY(0); opacity: 1; }
+  .compose-header { background: #3c3c3c; color: white; padding: 6px 12px; font-size: 11.5px; font-weight: 500; }
+  .compose-body {
+    padding: 10px;
+    font-size: 11.5px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .compose-field { border-bottom: 1px solid var(--border); padding: 4px 2px; min-height: 22px; font-size: 11.5px; }
+  .compose-field.body { flex: 1; border-bottom: none; padding-top: 6px; white-space: pre-wrap; line-height: 1.45; }
+  .field-label { color: var(--subtle); }
+  .send-btn {
+    background: var(--blue);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 18px;
+    font-size: 11.5px;
+    font-weight: 600;
+    align-self: flex-start;
+    margin-top: 4px;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .send-btn.highlight { background: var(--blue-dark); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); }
+
+  /* Cursor */
+  .cursor {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    left: -9px; top: -9px;
+    transform: translate(120px, 120px);
+    z-index: 100;
+    transition: transform 0.6s cubic-bezier(.2,.6,.3,1);
+  }
+  .cursor svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+  .cursor::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 32px; height: 32px;
+    margin-left: -16px; margin-top: -16px;
+    border: 2px solid var(--blue);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .script-pane .cursor::after { border-color: var(--amber); }
+  .cursor.click::after { animation: clickRing 0.5s ease-out; }
+  @keyframes clickRing {
+    0% { transform: scale(0.3); opacity: 1; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  /* Log panels */
+  .log, .api-log {
+    height: 120px;
+    padding: 10px 14px;
+    background: #1a1918;
+    color: #c9c8c0;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    overflow-y: auto;
+    line-height: 1.65;
+    border-top: 1px solid #2a2925;
+  }
+  .log-line { white-space: pre-wrap; }
+  .log-line.error { color: #f87171; }
+  .log-line.success { color: #4ade80; }
+  .log-line.warn { color: #fbbf24; }
+  .log-line.cmd { color: #93c5fd; }
+
+  /* Terminal */
+  .terminal {
+    height: 340px;
+    background: var(--term-bg);
+    color: var(--term-text);
+    padding: 16px 18px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .terminal .prompt { color: #6ee7b7; font-weight: 600; }
+  .terminal .comment { color: #72726a; font-style: italic; }
+  .terminal .string { color: #fbbf24; }
+  .terminal .key { color: #93c5fd; }
+  .terminal .punct { color: #c9c8c0; }
+  .terminal .ok { color: #4ade80; }
+  .terminal .warn { color: #fbbf24; }
+  .terminal .err { color: #f87171; }
+  .terminal .http { color: #c4b5fd; font-weight: 600; }
+
+  /* --- Comparison --- */
+  .comparison, .rules {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .comparison h2, .rules h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: -0.015em;
+  }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    text-align: left;
+    padding: 11px 12px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding-top: 0;
+  }
+  td:first-child { color: var(--text); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+
+  .comparison.primary-table table { min-width: 560px; }
+  .comparison.primary-table th:nth-child(2), .comparison.primary-table td:nth-child(2) { color: var(--blue-dark); }
+  .comparison.primary-table th:nth-child(3), .comparison.primary-table td:nth-child(3) { color: var(--green-dark); }
+
+  /* --- Variants (expandable) --- */
+  .variants { margin-bottom: 40px; }
+  .variants-intro {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 28px;
+    margin-bottom: 14px;
+  }
+  .variants-intro h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.015em;
+  }
+  .variants-intro p {
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+
+  .tabs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .tab-btn {
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    border-radius: 12px;
+    font-size: 14.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    gap: 12px;
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+  }
+  .tab-btn .tab-title { display: flex; flex-direction: column; gap: 3px; }
+  .tab-btn .tab-title strong { font-weight: 600; }
+  .tab-btn .tab-title span { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+  .tab-btn .chev {
+    font-size: 14px;
+    opacity: 0.55;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .tab-btn:hover { border-color: var(--text); }
+  .tab-btn[data-variant="browser"].active {
+    border-color: var(--amber);
+    background: #fef5e7;
+  }
+  .tab-btn[data-variant="browser"].active .tab-title strong { color: var(--amber-dark); }
+  .tab-btn[data-variant="api"].active {
+    border-color: var(--rose);
+    background: #fdeaf1;
+  }
+  .tab-btn[data-variant="api"].active .tab-title strong { color: var(--rose-dark); }
+  .tab-btn.active .chev { transform: rotate(180deg); opacity: 1; }
+
+  .variant-content { margin-top: 14px; }
+  .variant-panel {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+  }
+  .variant-panel.active { display: block; animation: fadeIn 0.25s ease-out; }
+  .variant-panel[data-variant="browser"] { border-left: 4px solid var(--amber); }
+  .variant-panel[data-variant="api"] { border-left: 4px solid var(--rose); }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .variant-head { margin-bottom: 16px; }
+  .variant-head h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .variant-panel[data-variant="browser"] h3 { color: var(--amber-dark); }
+  .variant-panel[data-variant="api"] h3 { color: var(--rose-dark); }
+  .variant-head p {
+    color: var(--muted);
+    font-size: 14.5px;
+    max-width: 760px;
+  }
+
+  .variant-mini {
+    background: #fafaf5;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+  .variant-mini h4 {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .variant-mini table { min-width: 0; }
+  .variant-mini th, .variant-mini td { padding: 9px 10px; font-size: 13px; }
+  .variant-mini.browser th:nth-child(2), .variant-mini.browser td:nth-child(2) { color: var(--blue-dark); }
+  .variant-mini.browser th:nth-child(3), .variant-mini.browser td:nth-child(3) { color: var(--amber-dark); }
+  .variant-mini.api th:nth-child(2), .variant-mini.api td:nth-child(2) { color: var(--green-dark); }
+  .variant-mini.api th:nth-child(3), .variant-mini.api td:nth-child(3) { color: var(--rose-dark); }
+
+  .rule {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .rule:last-child { border-bottom: none; padding-bottom: 0; }
+  .rule:first-of-type { padding-top: 0; }
+  .rule-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--muted);
+    opacity: 0.45;
+    line-height: 1.2;
+    min-width: 22px;
+    font-variant-numeric: tabular-nums;
+  }
+  .rule p { font-size: 14.5px; line-height: 1.5; }
+  .rule strong { font-weight: 600; }
+
+  .footnote { margin-top: 28px; font-size: 13px; color: var(--subtle); text-align: center; }
+
+  @media (max-width: 960px) {
+    .pane-row, .primary-cards, .tabs-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .arch-row, .arch-connector { grid-template-columns: 1fr; gap: 12px; }
+    .arch-entry::after { display: none; }
+  }
+  @media (max-width: 640px) {
+    h1 { font-size: 30px; }
+    .subtitle { font-size: 16px; }
+    .container { padding: 32px 16px 56px; }
+    .comparison, .rules, .architecture, .variants-intro, .variant-panel { padding: 22px; }
+    .task { width: 100%; margin-bottom: 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="eyebrow">Курс · Как агенты работают с внешними сервисами</div>
+    <h1>Две двери в любой сервис: <em>через браузер или через API.</em></h1>
+    <p class="subtitle">Чтобы агент что-то сделал в Gmail, CRM или Telegram, у него есть два способа: вести себя как живой пользователь в браузере — или дёргать сервис напрямую через API. Всё остальное — промежуточные варианты на этой шкале.</p>
+  </header>
+
+  <section class="architecture">
+    <h2>Что такое frontend, backend и API</h2>
+    <p class="arch-intro">Три термина, которые дальше будут мелькать постоянно. Один раз разобрались — и всё встанет на места.</p>
+
+    <div class="arch-box">
+      <div class="arch-row">
+        <div class="arch-layer frontend">
+          <div class="layer-header">
+            <div class="layer-icon">🖼</div>
+            <div>
+              <div class="layer-title">Frontend</div>
+              <div class="layer-sub">то, что видно на экране</div>
+            </div>
+          </div>
+          <div class="layer-body">Кнопки, формы, таблицы, графики — всё, что вы можете кликнуть и прочитать в браузере. Это «витрина» сервиса.</div>
+        </div>
+        <div class="arch-entry browser-entry">
+          <strong>🖱 Через браузер</strong>
+          <span>цепляемся к видимому UI</span>
+        </div>
+      </div>
+
+      <div class="arch-connector">
+        <div class="connector-label">↓ внутренние вызовы между frontend и backend ↓</div>
+        <div></div>
+      </div>
+
+      <div class="arch-row">
+        <div class="arch-layer backend">
+          <div class="layer-header">
+            <div class="layer-icon">⚙️</div>
+            <div>
+              <div class="layer-title">Backend</div>
+              <div class="layer-sub">невидимая часть сервиса</div>
+            </div>
+          </div>
+          <div class="layer-body">Вся логика и данные: кому отправить письмо, где лежит клиент, как посчитать сумму сделки. На вашем экране этого нет — оно живёт на серверах сервиса.</div>
+        </div>
+        <div class="arch-entry api-entry">
+          <strong>🔌 Через API</strong>
+          <span>цепляемся к backend напрямую</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch-note">
+      <p><strong>API — это «дверь в backend».</strong> Сервис сам решает, какие действия через эту дверь пускать. Поэтому наборы функций в UI и в API часто <em>не совпадают</em>:</p>
+      <ul>
+        <li><strong>API уже, чем UI</strong> — сервис выставил наружу только часть операций. В интерфейсе кнопка есть, а через API этого не сделать.</li>
+        <li><strong>API шире, чем UI</strong> — наоборот: массовые операции, служебные и админские функции бывают доступны только программно.</li>
+      </ul>
+      <p>Поэтому выбор способа подключения иногда определяется не скоростью, а просто тем, <em>где</em> вообще лежит нужная функция.</p>
+    </div>
+  </section>
+
+  <!-- ===== PRIMARY COMPARISON ===== -->
+  <section class="primary">
+    <div class="section-head">
+      <h2>Два главных пути</h2>
+      <p>Самое чистое противопоставление: «живой пользователь в браузере» против «прямой вызов API». Между ними — всё остальное.</p>
+    </div>
+    <div class="primary-cards">
+      <div class="primary-card user">
+        <div class="card-kicker">Путь через frontend</div>
+        <h3>🖱 Агент-пользователь</h3>
+        <p>Агент сам открывает сайт в браузере, смотрит на экран, читает кнопки и решает куда жать — прямо как живой пользователь. Каждый шаг — отдельное решение модели.</p>
+        <em>Гибко, работает где угодно. Но медленно и дорого.</em>
+      </div>
+      <div class="primary-card official">
+        <div class="card-kicker">Путь через backend</div>
+        <h3>🔌 Официальный API / MCP</h3>
+        <p>Сервис опубликовал программную «дверь» с документацией и обязательством её не ломать. Агент вызывает функцию — сразу получает результат, без кликов и экранов.</p>
+        <em>Быстро, надёжно, легально. Только если сервис его даёт.</em>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MAIN DEMO ===== -->
+  <section class="demo">
+    <div class="controls">
+      <p class="task">Задача: <strong>отправить письмо клиенту через Gmail</strong></p>
+      <div class="mode-toggle" role="radiogroup" aria-label="Сценарий">
+        <button id="mode-main-normal" class="active" type="button">● Обычный сайт</button>
+        <button id="mode-main-broken" type="button">🔀 Сервис обновился</button>
+      </div>
+    </div>
+    <div class="run-row">
+      <button id="btn-main">▶ Запустить оба</button>
+      <button id="btn-user" class="secondary">🖱 Агент-пользователь</button>
+      <button id="btn-official" class="secondary">🔌 Официальный API</button>
+    </div>
+
+    <div class="pane-row">
+      <!-- PANE: Agent-user -->
+      <div class="pane user-pane">
+        <div class="pane-header">
+          <span class="badge">🖱 Агент-пользователь</span>
+          <span class="metric">
+            <span id="user-time">0.0</span>с · <span id="user-steps">0</span>
+            <span class="status" id="user-status"></span>
+          </span>
+        </div>
+        <div class="mock-browser">
+          <div class="browser-chrome">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <div class="url-bar">mail.google.com</div>
+          </div>
+          <div class="browser-viewport">
+            <div class="gmail">
+              <div class="gmail-sidebar">
+                <div class="compose-btn" id="compose-btn-user">✏️ Написать</div>
+                <div class="sidebar-items">
+                  <div class="sidebar-item active">📥 Входящие</div>
+                  <div class="sidebar-item">⭐ Помеченные</div>
+                  <div class="sidebar-item">📤 Отправленные</div>
+                  <div class="sidebar-item">📝 Черновики</div>
+                </div>
+              </div>
+              <div class="gmail-inbox">
+                <div class="inbox-item"><b>Анна К.</b><span>Встреча завтра?</span></div>
+                <div class="inbox-item"><b>Slack</b><span>3 упоминания</span></div>
+                <div class="inbox-item"><b>Notion</b><span>Shared doc</span></div>
+                <div class="inbox-item"><b>Stripe</b><span>Оплата</span></div>
+              </div>
+              <div class="compose-modal" id="compose-user">
+                <div class="compose-header">Новое сообщение</div>
+                <div class="compose-body">
+                  <div class="compose-field"><span class="field-label">Кому: </span><span id="f-to-user"></span></div>
+                  <div class="compose-field"><span class="field-label">Тема: </span><span id="f-subj-user"></span></div>
+                  <div class="compose-field body" id="f-body-user"></div>
+                  <div class="send-btn" id="send-btn-user">Отправить</div>
+                </div>
+              </div>
+            </div>
+            <div class="cursor" id="cursor-user">
+              <svg viewBox="0 0 20 20">
+                <path d="M3 2L17 9.5L10.5 11.5L8 18L3 2Z" fill="#1a1918" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="log" id="user-log"></div>
+      </div>
+
+      <!-- PANE: Official API -->
+      <div class="pane">
+        <div class="pane-header">
+          <span class="badge official">🔌 Официальный API / MCP</span>
+          <span class="metric">
+            <span id="official-time">0.0</span>с · <span id="official-steps">0</span>
+            <span class="status" id="official-status"></span>
+          </span>
+        </div>
+        <div class="terminal" id="terminal-official"></div>
+        <div class="api-log" id="official-log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRIMARY TABLE ===== -->
+  <section class="comparison primary-table">
+    <h2>Что мы только что увидели</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Критерий</th>
+            <th>🖱 Агент-пользователь</th>
+            <th>🔌 Официальный API</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Куда цепляется</td>
+            <td>frontend — видимый UI</td>
+            <td>backend — публичная дверь</td>
+          </tr>
+          <tr>
+            <td>Время на действие</td>
+            <td>секунды — минуты</td>
+            <td>миллисекунды</td>
+          </tr>
+          <tr>
+            <td>Стоимость вызова</td>
+            <td>высокая — LLM на каждом шаге</td>
+            <td>копейки</td>
+          </tr>
+          <tr>
+            <td>Если сервис обновился</td>
+            <td>адаптируется в процессе</td>
+            <td>продолжает работать — контракт стабилен</td>
+          </tr>
+          <tr>
+            <td>Набор доступных функций</td>
+            <td>всё, что есть в UI</td>
+            <td>только то, что опубликовали</td>
+          </tr>
+          <tr>
+            <td>Риск блокировки</td>
+            <td>средний — CAPTCHA, анти-бот</td>
+            <td>минимальный — легальный канал</td>
+          </tr>
+          <tr>
+            <td>Что нужно для подключения</td>
+            <td>только логин</td>
+            <td>API-ключ или MCP-сервер</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== VARIANTS (EXPANDABLE) ===== -->
+  <section class="variants">
+    <div class="variants-intro">
+      <h2>А между ними — промежуточные варианты</h2>
+      <p>У каждого из двух путей есть «сосед», который двигает компромисс в одну или другую сторону. Раскройте, чтобы посмотреть сравнение бок о бок.</p>
+    </div>
+
+    <div class="tabs-row">
+      <button class="tab-btn" data-variant="browser">
+        <span class="tab-title">
+          <strong>🤖 Подробнее про браузерную</strong>
+          <span>агент-пользователь vs скрипт-робот</span>
+        </span>
+        <span class="chev">▾</span>
+      </button>
+      <button class="tab-btn" data-variant="api">
+        <span class="tab-title">
+          <strong>👤 Подробнее про API</strong>
+          <span>официальный vs неофициальный</span>
+        </span>
+        <span class="chev">▾</span>
+      </button>
+    </div>
+
+    <div class="variant-content">
+      <!-- BROWSER VARIANT -->
+      <div class="variant-panel" data-variant="browser">
+        <div class="variant-head">
+          <h3>🤖 Скрипт-робот — фиксированный путь через тот же браузер</h3>
+          <p>Вместо того чтобы агент каждый раз решал куда кликать, программист один раз записывает последовательность шагов (Playwright, Selenium, n8n). Агент вызывает её как готовую команду. Сравним бок о бок с агентом-пользователем на той же задаче.</p>
+        </div>
+        <div class="run-row">
+          <button id="btn-browser">▶ Запустить оба</button>
+          <button id="btn-user2" class="secondary">🖱 Только агент-пользователь</button>
+          <button id="btn-script" class="secondary">🤖 Только скрипт-робот</button>
+          <div class="mode-toggle" role="radiogroup" aria-label="Сценарий" style="margin-left: auto">
+            <button id="mode-browser-normal" class="active" type="button">● Обычный сайт</button>
+            <button id="mode-browser-broken" type="button">🔀 Сервис обновился</button>
+          </div>
+        </div>
+        <div class="pane-row">
+          <!-- PANE: Agent-user (copy for comparison) -->
+          <div class="pane user-pane">
+            <div class="pane-header">
+              <span class="badge">🖱 Агент-пользователь</span>
+              <span class="metric">
+                <span id="user2-time">0.0</span>с · <span id="user2-steps">0</span>
+                <span class="status" id="user2-status"></span>
+              </span>
+            </div>
+            <div class="mock-browser">
+              <div class="browser-chrome">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="url-bar">mail.google.com</div>
+              </div>
+              <div class="browser-viewport">
+                <div class="gmail">
+                  <div class="gmail-sidebar">
+                    <div class="compose-btn" id="compose-btn-user2">✏️ Написать</div>
+                    <div class="sidebar-items">
+                      <div class="sidebar-item active">📥 Входящие</div>
+                      <div class="sidebar-item">⭐ Помеченные</div>
+                      <div class="sidebar-item">📤 Отправленные</div>
+                      <div class="sidebar-item">📝 Черновики</div>
+                    </div>
+                  </div>
+                  <div class="gmail-inbox">
+                    <div class="inbox-item"><b>Анна К.</b><span>Встреча завтра?</span></div>
+                    <div class="inbox-item"><b>Slack</b><span>3 упоминания</span></div>
+                    <div class="inbox-item"><b>Notion</b><span>Shared doc</span></div>
+                    <div class="inbox-item"><b>Stripe</b><span>Оплата</span></div>
+                  </div>
+                  <div class="compose-modal" id="compose-user2">
+                    <div class="compose-header">Новое сообщение</div>
+                    <div class="compose-body">
+                      <div class="compose-field"><span class="field-label">Кому: </span><span id="f-to-user2"></span></div>
+                      <div class="compose-field"><span class="field-label">Тема: </span><span id="f-subj-user2"></span></div>
+                      <div class="compose-field body" id="f-body-user2"></div>
+                      <div class="send-btn" id="send-btn-user2">Отправить</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="cursor" id="cursor-user2">
+                  <svg viewBox="0 0 20 20">
+                    <path d="M3 2L17 9.5L10.5 11.5L8 18L3 2Z" fill="#1a1918" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="log" id="user2-log"></div>
+          </div>
+
+          <!-- PANE: Script-robot -->
+          <div class="pane script-pane">
+            <div class="pane-header">
+              <span class="badge script">🤖 Скрипт-робот</span>
+              <span class="metric">
+                <span id="script-time">0.0</span>с · <span id="script-steps">0</span>
+                <span class="status" id="script-status"></span>
+              </span>
+            </div>
+            <div class="mock-browser">
+              <div class="browser-chrome">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="url-bar">mail.google.com</div>
+              </div>
+              <div class="browser-viewport">
+                <div class="gmail">
+                  <div class="gmail-sidebar">
+                    <div class="compose-btn" id="compose-btn-script">✏️ Написать</div>
+                    <div class="sidebar-items">
+                      <div class="sidebar-item active">📥 Входящие</div>
+                      <div class="sidebar-item">⭐ Помеченные</div>
+                      <div class="sidebar-item">📤 Отправленные</div>
+                      <div class="sidebar-item">📝 Черновики</div>
+                    </div>
+                  </div>
+                  <div class="gmail-inbox">
+                    <div class="inbox-item"><b>Анна К.</b><span>Встреча завтра?</span></div>
+                    <div class="inbox-item"><b>Slack</b><span>3 упоминания</span></div>
+                    <div class="inbox-item"><b>Notion</b><span>Shared doc</span></div>
+                    <div class="inbox-item"><b>Stripe</b><span>Оплата</span></div>
+                  </div>
+                  <div class="compose-modal" id="compose-script">
+                    <div class="compose-header">Новое сообщение</div>
+                    <div class="compose-body">
+                      <div class="compose-field"><span class="field-label">Кому: </span><span id="f-to-script"></span></div>
+                      <div class="compose-field"><span class="field-label">Тема: </span><span id="f-subj-script"></span></div>
+                      <div class="compose-field body" id="f-body-script"></div>
+                      <div class="send-btn" id="send-btn-script">Отправить</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="cursor" id="cursor-script">
+                  <svg viewBox="0 0 20 20">
+                    <path d="M3 2L17 9.5L10.5 11.5L8 18L3 2Z" fill="#1a1918" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="log" id="script-log"></div>
+          </div>
+        </div>
+        <div class="variant-mini browser">
+          <h4>Коротко: что меняется по сравнению с агентом-пользователем</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Критерий</th>
+                  <th>🖱 Агент-пользователь</th>
+                  <th>🤖 Скрипт-робот</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Время на действие</td><td>секунды — минуты</td><td>секунды</td></tr>
+                <tr><td>Стоимость вызова</td><td>дорого — LLM на каждом шаге</td><td>дёшево — нет LLM-решений</td></tr>
+                <tr><td>Кто задал путь</td><td>LLM, на каждом шаге заново</td><td>программист, один раз</td></tr>
+                <tr><td>Если сайт обновили</td><td>адаптируется в процессе</td><td>падает с ошибкой</td></tr>
+                <tr><td>Поддержка</td><td>не нужна</td><td>чинить после редизайнов</td></tr>
+                <tr><td>Риск блокировки</td><td>средний</td><td>высокий — явная автоматизация</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- API VARIANT -->
+      <div class="variant-panel" data-variant="api">
+        <div class="variant-head">
+          <h3>👤 Неофициальный API — «притворяемся официальным клиентом»</h3>
+          <p>Сервис сам общается со своим backend через какие-то endpoints — из веб-клиента или мобильного приложения. Можно подсмотреть эти endpoints и вызывать их напрямую, представляясь официальным клиентом. Пример — Telethon для Telegram (MTProto), внутренние API Instagram, реверс XHR-запросов любого SaaS. Сравним с официальным API на той же задаче.</p>
+        </div>
+        <div class="run-row">
+          <button id="btn-api">▶ Запустить оба</button>
+          <button id="btn-official2" class="secondary">🔌 Только официальный</button>
+          <button id="btn-unofficial" class="secondary">👤 Только неофициальный</button>
+          <div class="mode-toggle" role="radiogroup" aria-label="Сценарий" style="margin-left: auto">
+            <button id="mode-api-normal" class="active" type="button">● Обычный сайт</button>
+            <button id="mode-api-broken" type="button">🔀 Сервис обновился</button>
+          </div>
+        </div>
+        <div class="pane-row">
+          <!-- PANE: Official API (copy for comparison) -->
+          <div class="pane">
+            <div class="pane-header">
+              <span class="badge official">🔌 Официальный API / MCP</span>
+              <span class="metric">
+                <span id="official2-time">0.0</span>с · <span id="official2-steps">0</span>
+                <span class="status" id="official2-status"></span>
+              </span>
+            </div>
+            <div class="terminal" id="terminal-official2"></div>
+            <div class="api-log" id="official2-log"></div>
+          </div>
+
+          <!-- PANE: Unofficial API -->
+          <div class="pane">
+            <div class="pane-header">
+              <span class="badge unofficial">👤 Неофициальный API</span>
+              <span class="metric">
+                <span id="unofficial-time">0.0</span>с · <span id="unofficial-steps">0</span>
+                <span class="status" id="unofficial-status"></span>
+              </span>
+            </div>
+            <div class="terminal" id="terminal-unofficial"></div>
+            <div class="api-log" id="unofficial-log"></div>
+          </div>
+        </div>
+        <div class="variant-mini api">
+          <h4>Коротко: что меняется по сравнению с официальным API</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Критерий</th>
+                  <th>🔌 Официальный API</th>
+                  <th>👤 Неофициальный API</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Что это</td><td>публичная документированная дверь</td><td>служебные endpoints сервиса</td></tr>
+                <tr><td>Набор функций</td><td>только то, что опубликовали</td><td>часто шире — всё, что делает клиент</td></tr>
+                <tr><td>Стабильность</td><td>контракт, сервис не ломает</td><td>внутренности меняют без предупреждения</td></tr>
+                <tr><td>Легальность</td><td>чисто</td><td>формально нарушение ToS</td></tr>
+                <tr><td>Риск блокировки</td><td>минимальный</td><td>высокий — могут забанить аккаунт</td></tr>
+                <tr><td>Что нужно</td><td>API-ключ или MCP-сервер</td><td>реверс протокола + сессия клиента</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RULES ===== -->
+  <section class="rules">
+    <h2>Как выбирать на практике</h2>
+    <div class="rule">
+      <span class="rule-num">1</span>
+      <p><strong>Есть официальный API или MCP — берите его.</strong> Самый быстрый, дешёвый, надёжный и легальный вариант. Сервис сам его поддерживает и не ломает.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-num">2</span>
+      <p><strong>Задача редкая, сайты разные, нужна гибкость — пусть агент сам ходит.</strong> Медленно и дорого, зато работает где угодно и адаптируется к изменениям прямо в процессе.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-num">3</span>
+      <p><strong>Задача повторяется, сайт стабилен — пишите скрипт-робота.</strong> Playwright, Selenium, n8n. Быстро и дёшево за вызов. Готовьтесь, что раз в пару месяцев скрипт придётся чинить после обновления сайта.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-num">4</span>
+      <p><strong>Неофициальный API — только когда без него никак.</strong> Когда нужной функции нет в официальном API, а через UI автоматизировать долго и хрупко. Понимайте риски: блокировка аккаунта, ToS-нарушение, внезапная поломка после обновления сервиса. Классические случаи: Telegram-user-боты через MTProto, скрейпинг внутренних API крупных соцсетей.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-num">5</span>
+      <p><strong>В реальной системе — комбинация.</strong> Официальный API для основных интеграций. Скрипт — там, где API нет, а задача повторяется. Агент — для редких и нестандартных случаев. Неофициальный API — только сознательно и только там, где риск оправдан.</p>
+    </div>
+  </section>
+
+  <p class="footnote">Демо-анимация. Реальные агенты работают так же, но на настоящих сайтах и API.</p>
+</div>
+
+<script>
+// ============== Helpers ==============
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const EMAIL = 'anna@example.com';
+const SUBJECT = 'Встреча завтра';
+const BODY = 'Привет, Анна!\nПодтверждаю встречу завтра в 15:00.\nДо связи, Николай.';
+
+const BROWSER_PANES = ['user', 'user2', 'script'];
+const API_PANES = ['official', 'official2', 'unofficial'];
+
+let timers = [];
+let running = false;
+const steps = { user: 0, user2: 0, script: 0, official: 0, official2: 0, unofficial: 0 };
+
+function els(p) {
+  return {
+    cursor: $(`cursor-${p}`),
+    compose: $(`compose-${p}`),
+    composeBtn: $(`compose-btn-${p}`),
+    sendBtn: $(`send-btn-${p}`),
+    fTo: $(`f-to-${p}`),
+    fSubj: $(`f-subj-${p}`),
+    fBody: $(`f-body-${p}`),
+    log: $(`${p}-log`),
+  };
+}
+
+function clearTimers() { timers.forEach(t => clearInterval(t)); timers = []; }
+
+function resetBrowserPane(p) {
+  steps[p] = 0;
+  $(`${p}-time`).textContent = '0.0';
+  $(`${p}-steps`).textContent = '0';
+  $(`${p}-status`).className = 'status';
+  $(`${p}-status`).textContent = '';
+  const e = els(p);
+  e.compose.classList.remove('open');
+  e.composeBtn.classList.remove('highlight');
+  e.composeBtn.textContent = '✏️ Написать';
+  e.sendBtn.classList.remove('highlight');
+  e.fTo.textContent = '';
+  e.fSubj.textContent = '';
+  e.fBody.textContent = '';
+  e.log.innerHTML = '';
+  e.cursor.style.transition = 'none';
+  e.cursor.style.transform = 'translate(90px, 120px)';
+  void e.cursor.offsetWidth;
+  e.cursor.style.transition = '';
+}
+
+function resetApiPane(p) {
+  steps[p] = 0;
+  $(`${p}-time`).textContent = '0.0';
+  $(`${p}-steps`).textContent = '0';
+  $(`${p}-status`).className = 'status';
+  $(`${p}-status`).textContent = '';
+  $(`terminal-${p}`).innerHTML = '';
+  $(`${p}-log`).innerHTML = '';
+}
+
+function resetPane(p) {
+  if (BROWSER_PANES.includes(p)) resetBrowserPane(p);
+  else resetApiPane(p);
+}
+
+function log(pane, msg, cls = '') {
+  const isApi = API_PANES.includes(pane);
+  const target = isApi ? $(`${pane}-log`) : els(pane).log;
+  const div = document.createElement('div');
+  div.className = 'log-line' + (cls ? ' ' + cls : '');
+  div.textContent = (cls === 'cmd' ? '' : '▸ ') + msg;
+  target.appendChild(div);
+  target.scrollTop = target.scrollHeight;
+}
+
+function logRaw(pane, msg, cls = '') {
+  const isApi = API_PANES.includes(pane);
+  const target = isApi ? $(`${pane}-log`) : els(pane).log;
+  const div = document.createElement('div');
+  div.className = 'log-line' + (cls ? ' ' + cls : '');
+  div.textContent = msg;
+  target.appendChild(div);
+  target.scrollTop = target.scrollHeight;
+}
+
+function startTimer(pane) {
+  let t = 0;
+  const el = $(`${pane}-time`);
+  const iv = setInterval(() => { t += 0.1; el.textContent = t.toFixed(1); }, 100);
+  timers.push(iv);
+  return () => clearInterval(iv);
+}
+
+function setStatus(pane, kind, text) {
+  const el = $(`${pane}-status`);
+  el.className = 'status ' + kind;
+  el.textContent = text;
+}
+
+function inc(pane) { steps[pane]++; $(`${pane}-steps`).textContent = steps[pane]; }
+
+// ============== Cursor motion ==============
+async function moveCursor(pane, xPct, yPct, ms = 600) {
+  const c = els(pane).cursor;
+  const vp = c.parentElement;
+  const w = vp.clientWidth, h = vp.clientHeight;
+  const x = w * xPct / 100;
+  const y = h * yPct / 100;
+  c.style.transition = `transform ${ms}ms cubic-bezier(.2,.6,.3,1)`;
+  c.style.transform = `translate(${x}px, ${y}px)`;
+  await sleep(ms);
+}
+
+async function clickPulse(pane) {
+  const c = els(pane).cursor;
+  c.classList.remove('click');
+  void c.offsetWidth;
+  c.classList.add('click');
+  await sleep(300);
+  c.classList.remove('click');
+}
+
+async function typeInto(el, text, speed = 28) {
+  for (const c of text) {
+    el.textContent += c;
+    await sleep(speed + Math.random() * 25);
+  }
+}
+
+// ============== Terminal typing ==============
+async function typeTerm(pane, segments, charMs = 7) {
+  const terminal = $(`terminal-${pane}`);
+  for (const [text, cls] of segments) {
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    terminal.appendChild(span);
+    for (const c of text) {
+      span.textContent += c;
+      terminal.scrollTop = terminal.scrollHeight;
+      await sleep(charMs + Math.random() * 4);
+    }
+  }
+}
+
+// ============== SCENARIO: Agent-user ==============
+async function userSuccess(p) {
+  const stop = startTimer(p);
+  log(p, 'Открываю mail.google.com');
+  await sleep(1400); inc(p);
+  log(p, 'Читаю страницу, ищу «Написать»');
+  await moveCursor(p, 10, 11, 900);
+  els(p).composeBtn.classList.add('highlight');
+  await sleep(400); inc(p);
+  log(p, 'Нажимаю');
+  await clickPulse(p);
+  els(p).compose.classList.add('open');
+  els(p).composeBtn.classList.remove('highlight');
+  await sleep(450); inc(p);
+  log(p, 'Кликаю «Кому», ввожу адрес');
+  await moveCursor(p, 70, 52, 650); await clickPulse(p);
+  await typeInto(els(p).fTo, EMAIL, 32); inc(p);
+  log(p, 'Кликаю «Тема», ввожу');
+  await moveCursor(p, 70, 62, 500); await clickPulse(p);
+  await typeInto(els(p).fSubj, SUBJECT, 32); inc(p);
+  log(p, 'Печатаю тело письма');
+  await moveCursor(p, 70, 72, 500); await clickPulse(p);
+  await typeInto(els(p).fBody, BODY, 24); inc(p);
+  log(p, 'Ищу «Отправить»');
+  await moveCursor(p, 62, 89, 650);
+  els(p).sendBtn.classList.add('highlight');
+  await sleep(300); inc(p);
+  log(p, 'Нажимаю');
+  await clickPulse(p);
+  await sleep(600);
+  els(p).sendBtn.classList.remove('highlight');
+  els(p).compose.classList.remove('open');
+  inc(p);
+  log(p, 'Письмо отправлено ✓', 'success');
+  setStatus(p, 'ok', '✓ ок');
+  stop();
+}
+
+async function userBroken(p) {
+  els(p).composeBtn.textContent = '+ New message';
+  const stop = startTimer(p);
+  log(p, 'Открываю mail.google.com');
+  await sleep(1400); inc(p);
+  log(p, 'Ищу кнопку «Написать»');
+  await sleep(900); inc(p);
+  log(p, 'Не вижу. Смотрю внимательнее…', 'warn');
+  await sleep(1100);
+  log(p, 'Вижу «+ New message» — по смыслу это она', 'warn');
+  await moveCursor(p, 10, 11, 900);
+  els(p).composeBtn.classList.add('highlight');
+  await sleep(500); inc(p);
+  log(p, 'Нажимаю');
+  await clickPulse(p);
+  els(p).compose.classList.add('open');
+  els(p).composeBtn.classList.remove('highlight');
+  await sleep(450); inc(p);
+  log(p, 'Заполняю поля');
+  await moveCursor(p, 70, 52, 650); await clickPulse(p);
+  await typeInto(els(p).fTo, EMAIL, 32); inc(p);
+  await moveCursor(p, 70, 62, 500); await clickPulse(p);
+  await typeInto(els(p).fSubj, SUBJECT, 32); inc(p);
+  await moveCursor(p, 70, 72, 500); await clickPulse(p);
+  await typeInto(els(p).fBody, BODY, 24); inc(p);
+  await moveCursor(p, 62, 89, 650);
+  els(p).sendBtn.classList.add('highlight');
+  await sleep(300); inc(p);
+  await clickPulse(p);
+  await sleep(600);
+  els(p).sendBtn.classList.remove('highlight');
+  els(p).compose.classList.remove('open');
+  inc(p);
+  log(p, 'Адаптировался к редизайну и отправил ✓', 'success');
+  setStatus(p, 'ok', '✓ адаптировался');
+  stop();
+}
+
+// ============== SCENARIO: Script ==============
+async function scriptSuccess() {
+  const p = 'script';
+  const stop = startTimer(p);
+  logRaw(p, '$ npx tsx send-email.ts', 'cmd');
+  await sleep(350);
+  log(p, "page.goto('mail.google.com')", 'cmd');
+  await sleep(450);
+  logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, "page.click('[data-testid=compose]')", 'cmd');
+  await moveCursor(p, 10, 11, 180); await clickPulse(p);
+  els(p).compose.classList.add('open');
+  await sleep(150); logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, "page.fill('input[name=to]', …)", 'cmd');
+  await moveCursor(p, 70, 52, 160);
+  els(p).fTo.textContent = EMAIL;
+  await sleep(120); logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, "page.fill('input[name=subject]', …)", 'cmd');
+  await moveCursor(p, 70, 62, 160);
+  els(p).fSubj.textContent = SUBJECT;
+  await sleep(120); logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, "page.fill('textarea[name=body]', …)", 'cmd');
+  await moveCursor(p, 70, 72, 160);
+  els(p).fBody.textContent = BODY;
+  await sleep(120); logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, "page.click('[data-testid=send]')", 'cmd');
+  await moveCursor(p, 62, 89, 160);
+  els(p).sendBtn.classList.add('highlight');
+  await clickPulse(p);
+  await sleep(250);
+  els(p).sendBtn.classList.remove('highlight');
+  els(p).compose.classList.remove('open');
+  logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, 'Письмо отправлено ✓', 'success');
+  setStatus(p, 'ok', '✓ ок');
+  stop();
+}
+
+async function scriptBroken() {
+  const p = 'script';
+  els(p).composeBtn.textContent = '+ New message';
+  const stop = startTimer(p);
+  logRaw(p, '$ npx tsx send-email.ts', 'cmd');
+  await sleep(350);
+  log(p, "page.goto('mail.google.com')", 'cmd');
+  await sleep(450); logRaw(p, '  ✓', 'success'); inc(p);
+  log(p, "page.click('[data-testid=compose]')", 'cmd');
+  await sleep(900);
+  logRaw(p, '  ✗ TimeoutError: selector [data-testid=compose] not found', 'error');
+  await sleep(400);
+  log(p, 'Сайт обновили, селектор не работает', 'error');
+  await sleep(300);
+  log(p, 'Скрипт упал. Агент получил ошибку.', 'error');
+  setStatus(p, 'fail', '✗ сломалось');
+  stop();
+}
+
+// ============== SCENARIO: Official API ==============
+async function officialSuccess(p, broken) {
+  const stop = startTimer(p);
+  await sleep(350);
+  await typeTerm(p, [
+    ['# MCP-сервер для Gmail (публичный API)\n', 'comment'],
+    ['# документированный, стабильный контракт\n', 'comment'],
+    ['\n> ', 'prompt'],
+    ['gmail.send_message', ''],
+    ['(', 'punct'],
+    ['\n    '], ['to', 'key'], [': ', 'punct'], [`"${EMAIL}"`, 'string'], [',\n    '],
+    ['subject', 'key'], [': ', 'punct'], [`"${SUBJECT}"`, 'string'], [',\n    '],
+    ['body', 'key'], [': ', 'punct'], [`"${BODY.replace(/\n/g, '\\n')}"`, 'string'],
+    ['\n  '], [')', 'punct'], ['\n']
+  ]);
+  inc(p);
+  log(p, 'Запрос ушёл');
+  await sleep(200);
+  await typeTerm(p, [
+    ['\n# ответ сервера\n', 'comment'],
+    ['{\n  '],
+    ['"status"', 'key'], [': ', 'punct'], ['"sent"', 'ok'], [',\n  '],
+    ['"id"', 'key'], [': ', 'punct'], ['"msg_18f3c2a9"', 'string'], [',\n  '],
+    ['"timestamp"', 'key'], [': ', 'punct'], ['"2026-04-17T14:02:11Z"', 'string'], ['\n'],
+    ['}\n'],
+    ['\n✓ Письмо доставлено\n', 'ok']
+  ], 6);
+  log(p, 'Письмо отправлено ✓', 'success');
+  if (broken) log(p, 'Обновление сервиса публичный API не трогает', 'success');
+  setStatus(p, 'ok', '✓ ок');
+  stop();
+}
+
+// ============== SCENARIO: Unofficial API ==============
+async function unofficialSuccess() {
+  const p = 'unofficial';
+  const stop = startTimer(p);
+  await sleep(350);
+  await typeTerm(p, [
+    ['# Внутренний endpoint Gmail\n', 'comment'],
+    ['# (используем как будто мы — web-клиент)\n', 'comment'],
+    ['# ⚠ не документирован, ToS-нарушение\n', 'warn'],
+    ['\n> ', 'prompt'],
+    ['POST', 'http'], [' ', ''],
+    ['https://mail.google.com/_/gmail/send\n', 'string'],
+    ['  '], ['Cookie', 'key'], [': ', 'punct'], ['SID=eyJ0eXAi…', 'string'], ['\n'],
+    ['  '], ['body', 'key'], [': ', 'punct'], ['{\n'],
+    ['    '], ['to', 'key'], [': ', 'punct'], [`"${EMAIL}"`, 'string'], [',\n'],
+    ['    '], ['subj', 'key'], [': ', 'punct'], [`"${SUBJECT}"`, 'string'], [',\n'],
+    ['    '], ['body', 'key'], [': ', 'punct'], [`"${BODY.slice(0, 35).replace(/\n/g, '\\n')}…"`, 'string'], ['\n'],
+    ['  }\n']
+  ]);
+  inc('unofficial');
+  log('unofficial', 'Притворяемся web-клиентом');
+  await sleep(200);
+  await typeTerm(p, [
+    ['\n# ответ\n', 'comment'],
+    ['HTTP 200 OK', 'http'], ['\n'],
+    ['{\n  '],
+    ['"op"', 'key'], [': ', 'punct'], ['"SEND_OK"', 'ok'], [',\n  '],
+    ['"thread_id"', 'key'], [': ', 'punct'], ['"1829ab4c"', 'string'], ['\n'],
+    ['}\n'],
+    ['\n✓ Отправлено\n', 'ok'],
+    ['⚠ формально нарушение ToS\n', 'warn']
+  ], 6);
+  log('unofficial', 'Письмо отправлено ✓', 'success');
+  log('unofficial', 'Но: риск бана аккаунта', 'warn');
+  setStatus('unofficial', 'warn', '⚠ сработало с риском');
+  stop();
+}
+
+async function unofficialBroken() {
+  const p = 'unofficial';
+  const stop = startTimer(p);
+  await sleep(350);
+  await typeTerm(p, [
+    ['# Внутренний endpoint Gmail\n', 'comment'],
+    ['\n> ', 'prompt'],
+    ['POST', 'http'], [' ', ''],
+    ['https://mail.google.com/_/gmail/send\n', 'string'],
+    ['  '], ['Cookie', 'key'], [': ', 'punct'], ['SID=eyJ0eXAi…', 'string'], ['\n'],
+    ['  '], ['body', 'key'], [': ', 'punct'], ['{ … }\n']
+  ]);
+  inc('unofficial');
+  await sleep(250);
+  await typeTerm(p, [
+    ['\n# ответ\n', 'comment'],
+    ['HTTP 404 Not Found', 'err'], ['\n'],
+    ['/_/gmail/send: route no longer exists\n', 'err'],
+    ['\n✗ Gmail переделал внутренности\n', 'err'],
+    ['Нужно реверсить протокол заново\n', 'err']
+  ], 6);
+  log('unofficial', 'Endpoint исчез — сервис обновился', 'error');
+  log('unofficial', 'Наш «клиент» сломался', 'error');
+  setStatus('unofficial', 'fail', '✗ сломалось');
+  stop();
+}
+
+// ============== Tabs ==============
+let activeTab = null;
+function setTab(which) {
+  activeTab = (activeTab === which) ? null : which;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.variant === activeTab);
+  });
+  document.querySelectorAll('.variant-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.variant === activeTab);
+  });
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => !running && setTab(btn.dataset.variant));
+});
+
+// ============== Run control ==============
+const modes = { main: 'normal', browser: 'normal', api: 'normal' };
+const paneScope = {
+  user: 'main', official: 'main',
+  user2: 'browser', script: 'browser',
+  official2: 'api', unofficial: 'api',
+};
+const runButtons = ['btn-main', 'btn-user', 'btn-official', 'btn-browser', 'btn-user2', 'btn-script', 'btn-api', 'btn-official2', 'btn-unofficial'];
+const modeButtons = [
+  'mode-main-normal', 'mode-main-broken',
+  'mode-browser-normal', 'mode-browser-broken',
+  'mode-api-normal', 'mode-api-broken',
+];
+
+function setMode(scope, m) {
+  modes[scope] = m;
+  ['normal', 'broken'].forEach(k => {
+    const btn = $(`mode-${scope}-${k}`);
+    if (btn) btn.classList.toggle('active', m === k);
+  });
+}
+
+function disableControls(on) {
+  runButtons.forEach(id => { const b = $(id); if (b) b.disabled = on; });
+  modeButtons.forEach(id => { const b = $(id); if (b) b.disabled = on; });
+}
+
+function runTask(p, broken) {
+  if (p === 'user' || p === 'user2') return broken ? userBroken(p) : userSuccess(p);
+  if (p === 'script') return broken ? scriptBroken() : scriptSuccess();
+  if (p === 'official' || p === 'official2') return officialSuccess(p, broken);
+  if (p === 'unofficial') return broken ? unofficialBroken() : unofficialSuccess();
+}
+
+async function run(which) {
+  if (running) return;
+  running = true;
+  clearTimers();
+
+  const panes = {
+    main: ['user', 'official'],
+    user: ['user'],
+    official: ['official'],
+    browser: ['user2', 'script'],
+    user2: ['user2'],
+    script: ['script'],
+    api: ['official2', 'unofficial'],
+    official2: ['official2'],
+    unofficial: ['unofficial'],
+  }[which] || [];
+
+  panes.forEach(resetPane);
+  disableControls(true);
+  await sleep(400);
+
+  const tasks = panes.map(p => {
+    const broken = modes[paneScope[p]] === 'broken';
+    return runTask(p, broken);
+  });
+  await Promise.allSettled(tasks);
+  disableControls(false);
+  running = false;
+}
+
+['main', 'browser', 'api'].forEach(scope => {
+  ['normal', 'broken'].forEach(m => {
+    const btn = $(`mode-${scope}-${m}`);
+    if (btn) btn.addEventListener('click', () => !running && setMode(scope, m));
+  });
+});
+
+[
+  ['btn-main', 'main'],
+  ['btn-user', 'user'],
+  ['btn-official', 'official'],
+  ['btn-browser', 'browser'],
+  ['btn-user2', 'user2'],
+  ['btn-script', 'script'],
+  ['btn-api', 'api'],
+  ['btn-official2', 'official2'],
+  ['btn-unofficial', 'unofficial'],
+].forEach(([id, which]) => {
+  const b = $(id);
+  if (b) b.addEventListener('click', () => run(which));
+});
+
+BROWSER_PANES.forEach(p => {
+  const c = els(p).cursor;
+  c.style.transition = 'none';
+  c.style.transform = 'translate(90px, 120px)';
+});
+</script>
+</body>
+</html>
