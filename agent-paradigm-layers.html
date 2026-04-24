@@ -60,7 +60,9 @@
     display: inline-flex; align-items: center; gap: 8px;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
   }
-  .btn:hover:not([disabled]) { background: #1e2430; border-color: #394153; color: white; }
+  .btn:hover:not([disabled]),
+  .btn.hint:not([disabled]) { background: #1e2430; border-color: #394153; color: white; }
+  .btn.hint:not([disabled]) { box-shadow: 0 0 0 3px rgba(223, 203, 114, 0.10); }
   .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
   .btn .dot { width: 6px; height: 6px; border-radius: 50%; background: #6b7280; }
   .btn.primary { border-color: #4a3620; color: #ffe4b8; }
@@ -622,6 +624,27 @@
     wrap('l', runLeft);
     wrap('r', runRight);
   });
+
+  const hintBtns = [$('run-l'), $('run-r'), $('run-both')];
+  let hintIdx = 0, hintTimer = null, hintStopped = false;
+  function hintTick() {
+    if (hintStopped) return;
+    hintBtns.forEach(b => b.classList.remove('hint'));
+    hintBtns[hintIdx].classList.add('hint');
+    hintIdx = (hintIdx + 1) % hintBtns.length;
+    hintTimer = setTimeout(hintTick, 900);
+  }
+  function stopHint() {
+    if (hintStopped) return;
+    hintStopped = true;
+    if (hintTimer) clearTimeout(hintTimer);
+    hintBtns.forEach(b => b.classList.remove('hint'));
+  }
+  hintBtns.forEach(b => {
+    b.addEventListener('mouseenter', stopHint, { once: true });
+    b.addEventListener('click', stopHint, { once: true });
+  });
+  setTimeout(hintTick, 600);
 })();
 </script>
 </body>
