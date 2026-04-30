@@ -693,12 +693,96 @@
 
   .footnote { margin-top: 28px; font-size: 13px; color: var(--subtle); text-align: center; }
 
+  /* --- Summary 2x2 matrix --- */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .summary > h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.015em;
+  }
+  .summary > .summary-sub {
+    color: var(--muted);
+    font-size: 14.5px;
+    margin-bottom: 22px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr 1fr;
+    grid-template-rows: 36px auto auto;
+    gap: 12px;
+  }
+  .summary-grid .col-head {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 10px 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-grid .row-head {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 0 6px;
+    line-height: 1.3;
+  }
+  .summary-grid .row-head .row-icon {
+    font-size: 16px;
+    margin-right: 8px;
+  }
+  .summary-cell {
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fcfcf8;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 116px;
+  }
+  .summary-cell .cell-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .summary-cell .cell-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .summary-cell.user { border-color: var(--blue); background: var(--blue-soft); }
+  .summary-cell.user .cell-title { color: var(--blue-dark); }
+  .summary-cell.official { border-color: var(--green); background: var(--green-soft); }
+  .summary-cell.official .cell-title { color: var(--green-dark); }
+  .summary-cell.script { border-color: var(--amber); background: var(--amber-soft); }
+  .summary-cell.script .cell-title { color: var(--amber-dark); }
+  .summary-cell.unofficial { border-color: var(--rose); background: var(--rose-soft); }
+  .summary-cell.unofficial .cell-title { color: var(--rose-dark); }
+
   @media (max-width: 960px) {
     .pane-row, .primary-cards, .tabs-row { grid-template-columns: 1fr; }
   }
   @media (max-width: 720px) {
     .arch-row, .arch-connector { grid-template-columns: 1fr; gap: 12px; }
     .arch-entry::after { display: none; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .summary-grid .col-head { display: none; }
+    .summary-grid .row-head { padding: 4px 0 0; }
   }
   @media (max-width: 640px) {
     h1 { font-size: 30px; }
@@ -1186,6 +1270,37 @@
     <div class="rule">
       <span class="rule-num">5</span>
       <p><strong>В реальной системе — комбинация.</strong> Официальный API для основных интеграций. Скрипт — там, где API нет, а задача повторяется. Агент — для редких и нестандартных случаев. Неофициальный API — только сознательно и только там, где риск оправдан.</p>
+    </div>
+  </section>
+
+  <!-- ===== SUMMARY 2x2 ===== -->
+  <section class="summary">
+    <h2>Все четыре способа на одной картинке</h2>
+    <p class="summary-sub">Две оси: <strong>где</strong> агент стучится в сервис (через UI или через API) и <strong>как</strong> сервис к этому относится (поддерживает официально или нет).</p>
+    <div class="summary-grid">
+      <div></div>
+      <div class="col-head">🖥 Frontend · через UI</div>
+      <div class="col-head">⚙️ Backend · через API</div>
+
+      <div class="row-head"><span class="row-icon">✅</span>Официально</div>
+      <div class="summary-cell user">
+        <div class="cell-title">🖱 Агент-пользователь</div>
+        <div class="cell-desc">LLM смотрит на экран и кликает как человек. Тот же UI, что у пользователя.</div>
+      </div>
+      <div class="summary-cell official">
+        <div class="cell-title">🔌 Официальный API / MCP</div>
+        <div class="cell-desc">Документированная дверь. Стабильный контракт, легально, дёшево.</div>
+      </div>
+
+      <div class="row-head"><span class="row-icon">⚠️</span>Неофициально</div>
+      <div class="summary-cell script">
+        <div class="cell-title">🤖 Скрипт-робот</div>
+        <div class="cell-desc">Playwright/Selenium по DOM. Дёшево и быстро, но ломается на редизайнах.</div>
+      </div>
+      <div class="summary-cell unofficial">
+        <div class="cell-title">👤 Неофициальный API</div>
+        <div class="cell-desc">Реверс внутренних endpoints клиента. Мощно, но ToS и блокировки.</div>
+      </div>
     </div>
   </section>
 </div>
