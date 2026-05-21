@@ -302,7 +302,7 @@
     function Solution({ children }) {
       const [open, setOpen] = useState(false);
       return (
-        <div className={`glass rounded-2xl mt-6 overflow-hidden transition-all`}>
+        <div className="glass rounded-2xl mt-6 overflow-hidden transition-all" data-solution-open={open ? 'true' : 'false'}>
           <button
             onClick={() => setOpen(o => !o)}
             className="w-full flex items-center justify-between gap-4 px-8 py-5 text-left hover:bg-[rgba(74,222,128,0.04)] transition-colors"
@@ -1117,6 +1117,13 @@
       const [animKey, setAnimKey] = useState(0);
       const total = slides.length;
 
+      const revealNextSolution = useCallback(() => {
+        const solution = document.querySelector('.slide-frame [data-solution-open="false"] button');
+        if (!solution) return false;
+        solution.click();
+        return true;
+      }, []);
+
       const go = useCallback((dir) => {
         setCurrent(prev => {
           const next = prev + dir;
@@ -1131,6 +1138,7 @@
         const onKey = (e) => {
           if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
             e.preventDefault();
+            if (revealNextSolution()) return;
             go(1);
           }
           if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
@@ -1150,7 +1158,7 @@
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-      }, [go, total]);
+      }, [go, revealNextSolution, total]);
 
       useEffect(() => {
         let startX = 0;
