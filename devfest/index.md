@@ -337,7 +337,7 @@ Infrastructure skills vs Domain skills
 
 Нужны инструменты (можно свичнуться)
 
-[slides.grably.tech/agent-paradigm-layers.html](https://slides.grably.tech/agent-paradigm-layers.html)
+[Подробнее](https://slides.grably.tech/agent-paradigm-layers.html)
 
 ---
 
