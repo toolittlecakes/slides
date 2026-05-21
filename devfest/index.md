@@ -48,7 +48,7 @@ Software Engineers?](https://aiconference.com/wp-content/uploads/2025/09/Yegor-D
 [Karpathy про декабрь](https://x.com/karpathy/status/2026731645169185220)
 
 
-### SDLC is dead
+### Март 2026. SDLC is dead
 
 <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
   <img src="./assets/sdlc1.png" alt="SDLC 1" style="max-width: 48%; height: auto;" />
@@ -59,7 +59,7 @@ Software Engineers?](https://aiconference.com/wp-content/uploads/2025/09/Yegor-D
 
 ---
 
-### SDLC is dead
+### Март 2026. SDLC is dead
 
 ![](./assets/sdlc3.png)
 
