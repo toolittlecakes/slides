@@ -400,7 +400,7 @@ Loose Coupling, High Cohesion
 
 ### Доп материалы
 
-- [Can you prove ROI in Software Eng](https://www.youtube.com/watch?v=JvosMkuNxF8)
+- [Can you prove ROI in Software Eng (16 минут)](https://www.youtube.com/watch?v=JvosMkuNxF8)
 - [Мок-собеседование на agentic engineer (час + 30 минут)](https://www.youtube.com/watch?v=7bOSq-drD5A)
 - [Куда двигается найм (1,5 часа)](https://www.youtube.com/live/y2NnheH1-eU)
 - [Как не просрать карьеру в эпоху ИИ (18 минут)](https://www.youtube.com/watch?v=AW4gLWLrzcw)
