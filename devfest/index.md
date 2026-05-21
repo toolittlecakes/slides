@@ -37,10 +37,10 @@ Software Engineers?](https://aiconference.com/wp-content/uploads/2025/09/Yegor-D
 
 ### Декабрь 2025
 
-Выход Opus-4.5 и GPT-5.2
+Выход Claude Opus 4.5 и GPT-5.2
 
 ![](./assets/dec-karpaty-twit.png)
-[Карпаты про Декабрь](https://x.com/karpathy/status/2026731645169185220)
+[Karpathy про декабрь](https://x.com/karpathy/status/2026731645169185220)
 
 
 ### SDLC is dead
@@ -370,7 +370,7 @@ Infrastructure skills vs Domain skills
   - Agentic Operations (оунит SDLC)
 - Рост цены токенов
 - ИИ-агенты вне разработки
-- Найм/увольнение в зависимости от владения ИИ
+- Найм/увольнение зависит от владения ИИ
 
 ### Итоги: Что делать?
 
