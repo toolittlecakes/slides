@@ -892,18 +892,19 @@
       () => (
         <Slide contentClassName="flex flex-col items-center text-center">
           <h2 className="font-display text-4xl font-700 tracking-tight leading-tight mb-5">Сдвиг парадигмы разработки</h2>
-          <iframe
-            src="https://slides.grably.tech/agent-paradigm-layers.html"
-            title="Agent paradigm layers"
-            className="w-full max-w-5xl rounded-xl border border-border bg-bg shadow-glow"
-            style={{ height: 'min(60vh, 520px)' }}
+          <img
+            src="./assets/agent-paradigm-layers-comparison.png"
+            alt="Сравнение pipeline и agent-подхода"
+            className="w-full max-w-5xl max-h-[500px] object-contain rounded-xl border border-border bg-bg shadow-glow"
           />
-          <div className="mt-5 space-y-1">
-            <p className="font-body text-xl text-[#dbe0ea]">
-              Infrastructure skills <span className="text-dim mx-2">vs</span> Domain skills
-            </p>
-            <p className="font-mono text-sm text-muted">Нужны инструменты <span className="text-dim">(можно свичнуться)</span></p>
-          </div>
+          <a
+            href="https://slides.grably.tech/agent-paradigm-layers.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 font-mono text-sm text-muted hover:text-accent transition-colors"
+          >
+            slides.grably.tech/agent-paradigm-layers.html
+          </a>
         </Slide>
       ),
 
