@@ -333,11 +333,11 @@ Loose Coupling, High Cohesion
 
 ![](./assets/agent-paradigm-layers-comparison.png)
 
+[Подробнее](https://slides.grably.tech/agent-paradigm-layers.html)
+
 Infrastructure skills vs Domain skills
 
 Нужны инструменты (можно свичнуться)
-
-[Подробнее](https://slides.grably.tech/agent-paradigm-layers.html)
 
 ---
 
