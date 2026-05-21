@@ -1,7 +1,7 @@
-![](./assets/qr.png)
+[![](./assets/qr.png)](https://slides.grably.tech/devfest/)
 
-Презентация  
-со ссылками
+[Презентация  
+со ссылками](https://slides.grably.tech/devfest/)
 
 ### AI-native SDLC. Грабли, на которые почти все наступают
 
