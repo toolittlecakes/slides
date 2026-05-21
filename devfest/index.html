@@ -331,6 +331,16 @@
     }
 
     const slides = [
+      // 1. Presentation QR
+      () => (
+        <Slide contentClassName="flex flex-col items-center justify-center gap-6">
+          <div className="rounded-[20px] bg-white p-5 shadow-[0_0_80px_rgba(239,90,60,0.28)] ring-1 ring-white/10">
+            <img src="./assets/qr.png" alt="QR code" className="w-[460px] h-[460px] object-contain" />
+          </div>
+          <p className="font-body text-2xl text-muted text-center leading-snug">Презентация<br/>со ссылками</p>
+        </Slide>
+      ),
+
       // 1. Speaker intro
       () => (
         <Slide>
