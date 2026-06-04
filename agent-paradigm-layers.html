@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Где фундамент? · paradigm v2</title>
+<title>Where's the foundation? · paradigm v2</title>
 <style>
   :root {
     --bg: #0e121a;
@@ -16,7 +16,7 @@
     --blue-glow: #7ba8d9;
     --blue-sub: #7ba0c4;
 
-    /* warm (LLM + Agent — одинаковая палитра, агент отличается только размером/ореолом) */
+    /* warm (LLM + Agent — same palette, the agent differs only in size/halo) */
     --warm-fill: #3c2f17;
     --warm-stroke: #e0a855;
     --warm-text: #f5d898;
@@ -231,11 +231,11 @@
 <body>
 <div class="app">
   <header>
-    <div class="brand">где лежит <b>фундамент</b> · одна задача, две архитектуры</div>
+    <div class="brand">where the <b>foundation</b> lives · one task, two architectures</div>
     <div class="buttons">
-      <button class="btn" id="run-l"><span class="dot"></span>слева</button>
-      <button class="btn" id="run-r"><span class="dot"></span>справа</button>
-      <button class="btn primary" id="run-both"><span class="dot"></span>оба сразу</button>
+      <button class="btn" id="run-l"><span class="dot"></span>left</button>
+      <button class="btn" id="run-r"><span class="dot"></span>right</button>
+      <button class="btn primary" id="run-both"><span class="dot"></span>both at once</button>
     </div>
   </header>
 
@@ -343,7 +343,7 @@
 
           <!-- ground baseline + label -->
           <line x1="30" y1="336" x2="450" y2="336" stroke="#252b38" stroke-dasharray="3 4"/>
-          <text x="240" y="351" class="spine-cap" text-anchor="middle" fill="#4a5468">← фундамент: один агент держит всё →</text>
+          <text x="240" y="351" class="spine-cap" text-anchor="middle" fill="#4a5468">← foundation: one agent holds it all →</text>
 
           <!-- 5 tools in symmetric arc above agent (single warm LLM tool — 11labs at apex) -->
           <g class="block blue" id="t1" transform="translate(67 190)">
@@ -385,29 +385,29 @@
   <div class="compare">
     <div class="compare-head">
       <span class="t-left">pipeline · blue backbone</span>
-      <span class="t-mid">одна задача — дневной дайджест</span>
+      <span class="t-mid">one task — daily digest</span>
       <span class="t-right">agent · warm foundation</span>
     </div>
     <div class="compare-grid">
-      <div class="val-left">синяя цепь · код</div>
-      <div class="axis-label">кто ведёт процесс</div>
-      <div class="val-right">оранжевый агент</div>
+      <div class="val-left">blue chain · code</div>
+      <div class="axis-label">who drives the process</div>
+      <div class="val-right">orange agent</div>
 
-      <div class="val-left">один из шагов в пайплайне</div>
-      <div class="axis-label">роль LLM</div>
-      <div class="val-right">ведёт весь жизненный цикл</div>
+      <div class="val-left">one step in the pipeline</div>
+      <div class="axis-label">LLM's role</div>
+      <div class="val-right">drives the whole lifecycle</div>
 
       <div class="val-left">pydantic · openapi</div>
-      <div class="axis-label">контракт между шагами</div>
-      <div class="val-right">естеств. язык + JSON</div>
+      <div class="axis-label">contract between steps</div>
+      <div class="val-right">natural language + JSON</div>
 
       <div class="val-left">PR → review → deploy</div>
-      <div class="axis-label">цена правки порядка</div>
-      <div class="val-right">абзац в PROMPT.md</div>
+      <div class="axis-label">cost of reordering</div>
+      <div class="val-right">a paragraph in PROMPT.md</div>
 
-      <div class="val-left">падает · будит on-call</div>
-      <div class="axis-label">если что-то не так</div>
-      <div class="val-right">импровизирует · пишет в телегу</div>
+      <div class="val-left">crashes · wakes on-call</div>
+      <div class="axis-label">when something goes wrong</div>
+      <div class="val-right">improvises · pings Telegram</div>
     </div>
   </div>
 </div>
@@ -522,23 +522,23 @@
     }
     await moveTo('packet-l', pos, 460, 220, 330);
     packet.classList.remove('show');
-    setLog('l', 'ok · pipeline done · cron спит');
+    setLog('l', 'ok · pipeline done · cron sleeps');
   }
 
   // ═══════════ RIGHT ═══════════
   // Each entry is a group. Items inside a group fire in parallel.
-  // Порядок намеренно «прыгает» — агент сам решает что и когда дёргать,
-  // и при необходимости возвращается к уже использованному тулу (итерация).
+  // The order intentionally "jumps" — the agent decides what to call and when,
+  // and revisits an already-used tool when needed (iteration).
   const rightSteps = [
     [
       { tool: 't2', kind: 'blue', packet: 'packet-r',
-        text: 'agent → gmail_mcp ∥ fetch_tix · собирает входящие параллельно' },
+        text: 'agent → gmail_mcp ∥ fetch_tix · gathers inbox in parallel' },
       { tool: 't1', kind: 'blue', packet: 'packet-r2' },
     ],
-    [{ tool: 't4', kind: 'blue', text: 'notion_get(/team/sprint) · добирает контекст спринта' }],
-    [{ tool: 't1', kind: 'blue', text: 'в письме упомянут #234 → fetch_tix(id=234) · идёт за деталями' }],
-    [{ tool: 't3', kind: 'warm', text: 'дайджест готов → 11labs.tts() · озвучка для босса' }],
-    [{ tool: 't6', kind: 'blue', text: 'send_tg → текст + voice · done' }],
+    [{ tool: 't4', kind: 'blue', text: 'notion_get(/team/sprint) · pulls sprint context' }],
+    [{ tool: 't1', kind: 'blue', text: 'email mentions #234 → fetch_tix(id=234) · fetches details' }],
+    [{ tool: 't3', kind: 'warm', text: 'digest ready → 11labs.tts() · voiceover for the boss' }],
+    [{ tool: 't6', kind: 'blue', text: 'send_tg → text + voice · done' }],
   ];
   const toolPos = {
     t1: { x: 67,  y: 190 },
@@ -595,7 +595,7 @@
       await sleep(280);
     }
     document.querySelectorAll('.agent-halo').forEach(h => h.classList.remove('fast'));
-    setLog('r', 'дайджест ушёл · агент ждёт завтрашнего запуска');
+    setLog('r', 'digest sent · agent waits for tomorrow\'s run');
     setTimeout(() => $('agent').classList.remove('active'), 600);
   }
 
