@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-native найм</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['Outfit', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'monospace'],
+          },
+          colors: {
+            bg: '#08090d',
+            surface: '#13151b',
+            border: '#252833',
+            accent: '#ef5a3c',
+            muted: '#adb2bf',
+            dim: '#6f7788',
+          },
+          boxShadow: {
+            glow: '0 0 48px rgba(239, 90, 60, 0.18)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.26.10/babel.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { width: 100vw; height: 100vh; overflow: hidden; background: #08090d; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: lining-nums;
+      font-feature-settings: "lnum" 1;
+      background:
+        radial-gradient(900px 620px at 82% -15%, rgba(239, 90, 60, 0.10), transparent 68%),
+        radial-gradient(760px 520px at -12% 100%, rgba(64, 94, 191, 0.12), transparent 64%),
+        #08090d;
+    }
+
+    .font-display {
+      font-variant-numeric: lining-nums;
+      font-feature-settings: "lnum" 1;
+    }
+
+    .font-mono,
+    .slide-counter,
+    ol.slide-ol > li::before {
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+    }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      background: #08090d;
+      overflow: hidden;
+    }
+    .slide-frame {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1280px;
+      height: 800px;
+      transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+      transform-origin: center center;
+    }
+
+    .slide-enter { animation: slideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.992); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(19, 21, 27, 0.72), rgba(19, 21, 27, 0.48));
+      border: 1px solid rgba(37, 40, 51, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .accent-line {
+      width: 58px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ef5a3c, #ff8c70);
+    }
+
+    ul.slide-list > li {
+      position: relative;
+      padding-left: 1.45rem;
+    }
+    ul.slide-list > li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.65em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ef5a3c;
+      box-shadow: 0 0 0 4px rgba(239, 90, 60, 0.16);
+    }
+
+    ul.slide-list-sm > li {
+      position: relative;
+      padding-left: 1.1rem;
+    }
+    ul.slide-list-sm > li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #ef5a3c;
+      box-shadow: 0 0 0 3px rgba(239, 90, 60, 0.12);
+    }
+
+    ol.slide-ol {
+      list-style: none;
+      counter-reset: step;
+    }
+    ol.slide-ol > li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 2.7rem;
+    }
+    ol.slide-ol > li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: -0.05em;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15em;
+      font-weight: 700;
+      color: #ef5a3c;
+    }
+
+    ol.slide-ol-from-5 { counter-reset: step 4; }
+    ol.slide-ol-from-5 > li::before { content: counter(step); }
+
+    .speaker-layout {
+      width: 100%;
+      display: flex;
+      align-items: stretch;
+      gap: 3.5rem;
+    }
+    .speaker-layout-main {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .speaker-photo-wrap {
+      flex: 0 0 260px;
+      margin-left: auto;
+    }
+    .speaker-photo-wrap img {
+      width: 100%;
+      height: auto;
+      max-width: 260px;
+    }
+
+    @media (max-width: 1200px) {
+      .speaker-layout { gap: 2rem; }
+      .speaker-photo-wrap { flex-basis: 220px; }
+      .speaker-photo-wrap img { max-width: 220px; }
+    }
+
+    @page {
+      size: 16in 10in;
+      margin: 0;
+    }
+    @media print {
+      html, body, #root {
+        width: auto;
+        height: auto;
+        overflow: visible;
+        background: #08090d !important;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .glass {
+        background: #1a1c24 !important;
+        border: 1px solid #252833 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .screen-only { display: none !important; }
+      .print-only { display: block !important; }
+      .print-slide {
+        width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+        page-break-after: always;
+        break-after: page;
+        overflow: hidden;
+        background: #08090d !important;
+      }
+      .print-slide > * {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      .print-slide:last-child {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+    }
+    @media screen {
+      .print-only { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useCallback } = React;
+
+    function Slide({ children, className = '', contentClassName = '' }) {
+      return (
+        <div className={`relative w-full h-full px-56 py-14 flex flex-col justify-center ${className}`}>
+          <div className={`w-full max-w-[1152px] mx-auto ${contentClassName}`}>
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    function H2({ children }) {
+      return (
+        <div className="mb-9 max-w-5xl mx-auto w-full">
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">{children}</h2>
+        </div>
+      );
+    }
+
+    function Panel({ children, className = '' }) {
+      return (
+        <div className={`glass rounded-2xl p-8 ${className}`}>
+          {children}
+        </div>
+      );
+    }
+
+    function SmallPanel({ children, className = '' }) {
+      return (
+        <div className={`glass rounded-xl p-5 ${className}`}>
+          {children}
+        </div>
+      );
+    }
+
+    function Card({ eyebrow, title, children, className = '' }) {
+      return (
+        <div className={`glass rounded-2xl p-7 ${className}`}>
+          {eyebrow && <p className="font-mono text-sm uppercase tracking-[0.18em] text-accent mb-3">{eyebrow}</p>}
+          {title && <p className="font-display text-2xl font-700 tracking-tight text-[#f8fafc] mb-4">{title}</p>}
+          <div className="font-body text-xl text-[#dbe0ea] leading-relaxed">{children}</div>
+        </div>
+      );
+    }
+
+    function Pill({ children }) {
+      return (
+        <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-4 py-2 font-mono text-sm text-[#ffb09e]">
+          {children}
+        </span>
+      );
+    }
+
+    function ProgressBar({ current, total }) {
+      const pct = ((current + 1) / total) * 100;
+      return (
+        <div className="fixed bottom-0 left-0 w-full h-[2px] bg-border z-50">
+          <div className="h-full bg-accent transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
+        </div>
+      );
+    }
+
+    const slides = [
+      () => (
+        <Slide>
+          <div className="max-w-6xl mx-auto speaker-layout">
+            <div className="speaker-layout-main">
+              <div>
+                <p className="font-mono text-sm uppercase tracking-[0.22em] text-accent mb-5">Podlodka Hiring</p>
+                <h1 className="font-display text-6xl font-800 tracking-tight leading-[0.98] max-w-4xl">
+                  AI-native найм
+                </h1>
+              </div>
+              <div>
+                <p className="font-display text-3xl font-700 tracking-tight text-muted mb-5">
+                  Николай Шейко
+                </p>
+                <ul className="slide-list space-y-4 font-body text-xl text-[#dbe0ea] leading-relaxed max-w-4xl">
+                  <li>Кастомная ИИ разработка: <a href="https://grably.tech" target="_blank" rel="noopener noreferrer" className="text-accent font-mono hover:text-[#ff8c70] transition-colors">grably.tech</a></li>
+                  <li>Топовые онлайн конфы по ИИ: <a href="https://entropy.talk" target="_blank" rel="noopener noreferrer" className="text-accent font-mono hover:text-[#ff8c70] transition-colors">entropy.talk</a></li>
+                  <li>Личный опыт, факапы, туториалы: <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="text-accent font-mono hover:text-[#ff8c70] transition-colors">@ai_grably</a></li>
+                </ul>
+                <div className="grid grid-cols-3 gap-4 mt-8 max-w-4xl">
+                  <SmallPanel><p className="font-body text-base leading-snug text-[#dbe0ea]">ex AI-Architect в US HRTech</p></SmallPanel>
+                  <SmallPanel><p className="font-body text-base leading-snug text-[#dbe0ea]">Нанимаю сам</p></SmallPanel>
+                  <SmallPanel><p className="font-body text-base leading-snug text-[#dbe0ea]">Перестраиваю найм клиентам</p></SmallPanel>
+                </div>
+              </div>
+            </div>
+            <div className="speaker-photo-wrap">
+              <img
+                src="./assets/nikolay-sheyko-avatar.jpg"
+                alt="Николай Шейко"
+                className="block rounded-2xl border border-border shadow-glow"
+              />
+              <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mt-4 px-4 py-3 rounded-2xl border border-border bg-[rgba(0,0,0,0.18)] hover:border-accent/40 hover:bg-[rgba(0,0,0,0.26)] transition-all" style={{maxWidth: 340}}>
+                <div className="w-9 h-9 rounded-full border border-border bg-[rgba(0,0,0,0.25)] overflow-hidden flex-shrink-0">
+                  <img src="./assets/oestick-avatar.jpg" alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-body text-sm font-500 text-[#f8fafc]">AI и грабли</p>
+                  <p className="font-mono text-xs text-dim truncate">t.me/ai_grably</p>
+                </div>
+                <div className="ml-auto w-9 h-9 rounded-full border border-accent/30 bg-gradient-to-br from-accent/20 to-accent/10 flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-[rgba(255,255,255,0.88)]">
+                    <path d="M9.04 15.47 8.7 20.3c.49 0 .7-.21.95-.46l2.28-2.18 4.72 3.46c.86.48 1.47.23 1.7-.8l3.08-14.45v-.01c.29-1.29-.47-1.8-1.3-1.5L1.96 9.02c-1.25.49-1.23 1.19-.22 1.5l4.71 1.47L17.4 5.2c.52-.34 1-.15.6.2L9.04 15.47Z" />
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>План</H2>
+          <div className="max-w-5xl mx-auto w-full space-y-5">
+            <Card eyebrow="01" title="Вопросы из индустрии">
+              <div className="flex flex-wrap gap-3">
+                <Pill>разрешать ИИ?</Pill>
+                <Pill>как проверять человека, а не ИИ?</Pill>
+                <Pill>нужен ли лайвкодинг?</Pill>
+              </div>
+            </Card>
+            <div className="grid grid-cols-2 gap-5">
+              <Card eyebrow="02" title="Два реальных кейса">
+                <p>AI инженер и классический инженер.</p>
+              </Card>
+              <Card eyebrow="03" title="Что ждем завтра">
+                <p>Как поменяются роли и сам найм.</p>
+              </Card>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Разрешать ли ИИ?</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel className="mb-7">
+              <p className="font-display text-4xl font-700 tracking-tight text-center text-[#f8fafc]">
+                Сложно сбалансировать задание
+              </p>
+            </Panel>
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-5 items-stretch">
+              <Card title="Мало человека, много ИИ">
+                <p>Кандидат может красиво упаковать чужую работу.</p>
+              </Card>
+              <div className="flex items-center justify-center px-3">
+                <p className="font-display text-4xl text-accent">&lt;=&gt;</p>
+              </div>
+              <Card title="Много человека, мало ИИ">
+                <p>Проверяем старый мир, а работать придется в новом.</p>
+              </Card>
+            </div>
+            <p className="font-body text-2xl text-muted text-center mt-8">
+              Иногда полезнее разделить на независимые этапы
+            </p>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Как проверять человека, а не ИИ?</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <p className="font-display text-3xl font-700 tracking-tight text-[#f8fafc] mb-8">
+              Проверять то, с чем у ИИ плохо
+            </p>
+            <div className="grid grid-cols-2 gap-5">
+              <Card title="Чувство вкуса">
+                <p>Не просто рабочее решение, а уместное.</p>
+              </Card>
+              <Card title="Доменную экспертизу">
+                <p>Контекст, ограничения, странные реальные trade-off'ы.</p>
+              </Card>
+              <Card title="Выход за границу задач">
+                <p>Замечает ли человек, что сама постановка кривая.</p>
+              </Card>
+              <Card title="Работу с ИИ">
+                <p>Как ставит задачи, валидирует и спорит с агентом.</p>
+              </Card>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Нужен ли лайвкодинг?</H2>
+          <div className="grid grid-cols-2 gap-7 max-w-5xl mx-auto w-full items-stretch">
+            <Card eyebrow="Раньше" title="Лайвкодинг был странным компромиссом">
+              <ul className="slide-list space-y-4">
+                <li>Сложную фичу не успеть</li>
+                <li>А простые далеки от реальности</li>
+                <li>Cистем дизайн важнее чем умение кодить</li>
+              </ul>
+            </Card>
+            <Card eyebrow="Сейчас" title="Он стал ближе к реальной работе">
+              <ul className="slide-list space-y-4">
+                <li>Можно успеть большой кусок</li>
+                <li>Систем дизайн – часть "кодинга"</li>
+                <li>Самое важное – коммуникация с агентом</li>
+              </ul>
+            </Card>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Кейс 1. Найм AI инженера</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel className="mb-7">
+              <p className="font-body text-2xl text-[#dbe0ea]">
+                US стартап. Клиенты – крупные авиакомпании
+              </p>
+            </Panel>
+            <div className="grid grid-cols-3 gap-5">
+              <Card eyebrow="01" title="Тестовое">
+                <p>1-2 вечера на production-like задачу.</p>
+              </Card>
+              <Card eyebrow="02" title="ИИ-скоринг">
+                <p>Предварительная проверка решения.</p>
+                <p className="font-display text-4xl text-accent mt-5">80% отсев</p>
+              </Card>
+              <Card eyebrow="03" title="Вживую">
+                <p>Уход вглубь по тестовому и предыдущему опыту.</p>
+                <p className="font-display text-4xl text-accent mt-5">80% отсев</p>
+              </Card>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Кейс 2. Найм классического инженера</H2>
+          <div className="grid grid-cols-2 gap-7 max-w-5xl mx-auto w-full">
+            <Card title="Есть готовый игровой репозиторий">
+              <ul className="slide-list-sm space-y-3 text-lg">
+                <li>Рассинхрон документации</li>
+                <li>Архитектура не вмещает новые фичи без рефакторинга</li>
+                <li>Микс разных подходов</li>
+                <li>Легаси решения, которые ограничивают рефакторинг</li>
+                <li>Нет ai-нативности™</li>
+              </ul>
+            </Card>
+            <div className="space-y-5">
+              <Card eyebrow="Задача" title="Нужно впилить новую фичу">
+                <p>Не игрушечный алгоритм на доске, а кусок работы в живом коде.</p>
+              </Card>
+              <Card eyebrow="После отправки" title="Автоматический анализ">
+                <p>Решение прогоняется по чеклистам сразу после сдачи.</p>
+              </Card>
+            </div>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Что детектим</H2>
+          <div className="grid grid-cols-2 gap-5 max-w-5xl mx-auto w-full">
+            <Card title="Как использует ИИ агентов">
+              <p>Есть ли рабочий процесс, а не магическое "сделай красиво".</p>
+            </Card>
+            <Card title="Насколько погружается в реализацию">
+              <p>Понимает ли изменения или просто принимает diff.</p>
+            </Card>
+            <Card title="Может ли найти проблемы">
+              <p>Видит ли ограничения репозитория и скрытые риски.</p>
+            </Card>
+            <Card title="Понимает рефакторинг">
+              <p>Может ли сделать подходящий рефакторинг, а не косметику.</p>
+            </Card>
+          </div>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Главные выводы</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#dbe0ea] leading-relaxed max-w-5xl mx-auto w-full">
+            <li>ИИ подсвечивает компетентность <span className="text-dim">(или некомпетентность)</span></li>
+            <li>Можно работать с production-like задачами</li>
+            <li>ИИ хорошо делает первичную проверку <span className="text-dim">(по заранее прописанным критериям)</span></li>
+            <li>На сегодняшнем рынке растет толерантность к тестовым</li>
+          </ul>
+        </Slide>
+      ),
+
+      () => (
+        <Slide>
+          <H2>Чего ждем завтра?</H2>
+          <div className="space-y-5 max-w-5xl mx-auto w-full">
+            <Card title="Модели уровня Fable+ начинают прощать многие ошибки">
+              <p>Значит, слабые тестовые станут еще менее диагностичными.</p>
+            </Card>
+            <div className="grid grid-cols-2 gap-5">
+              <Card title="AI-native engineer">
+                <p>Делает работу руками агентов и отвечает за качество.</p>
+              </Card>
+              <Card title="AI-SDLC manager">
+                <p>Оунит процесс, метрики и систему разработки.</p>
+              </Card>
+            </div>
+            <Card title="Отдельные ...Ops роли">
+              <p>Настройка агентов для нетехнарей станет самостоятельной работой.</p>
+            </Card>
+          </div>
+        </Slide>
+      ),
+    ];
+
+    function getInitialSlide() {
+      const p = new URLSearchParams(window.location.search);
+      const s = parseInt(p.get('slide'), 10);
+      return (!isNaN(s) && s >= 0) ? Math.min(s, slides.length - 1) : 0;
+    }
+
+    function syncURL(n) {
+      const url = new URL(window.location);
+      url.searchParams.set('slide', n);
+      window.history.replaceState(null, '', url);
+    }
+
+    function App() {
+      const [current, setCurrent] = useState(getInitialSlide);
+      const [animKey, setAnimKey] = useState(0);
+      const total = slides.length;
+
+      const go = useCallback((dir) => {
+        setCurrent(prev => {
+          const next = prev + dir;
+          if (next < 0 || next >= total) return prev;
+          syncURL(next);
+          return next;
+        });
+        setAnimKey(k => k + 1);
+      }, [total]);
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+            e.preventDefault();
+            go(1);
+          }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+            e.preventDefault();
+            go(-1);
+          }
+          if (e.key === 'Home') {
+            setCurrent(0);
+            syncURL(0);
+            setAnimKey(k => k + 1);
+          }
+          if (e.key === 'End') {
+            setCurrent(total - 1);
+            syncURL(total - 1);
+            setAnimKey(k => k + 1);
+          }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [go, total]);
+
+      useEffect(() => {
+        let startX = 0;
+        const onTouchStart = (e) => { startX = e.touches[0].clientX; };
+        const onTouchEnd = (e) => {
+          const diff = startX - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 60) go(diff > 0 ? 1 : -1);
+        };
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchend', onTouchEnd, { passive: true });
+        return () => {
+          window.removeEventListener('touchstart', onTouchStart);
+          window.removeEventListener('touchend', onTouchEnd);
+        };
+      }, [go]);
+
+      useEffect(() => {
+        const update = () => {
+          const s = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
+          document.documentElement.style.setProperty('--slide-scale', s);
+        };
+        update();
+        window.addEventListener('resize', update);
+        window.addEventListener('orientationchange', update);
+        return () => {
+          window.removeEventListener('resize', update);
+          window.removeEventListener('orientationchange', update);
+        };
+      }, []);
+
+      const CurrentSlide = slides[current];
+
+      return (
+        <>
+          <div className="stage screen-only">
+            <div className="slide-frame">
+              <div key={animKey} className="w-full h-full slide-enter">
+                <CurrentSlide />
+              </div>
+            </div>
+            <ProgressBar current={current} total={total} />
+            <div className="fixed bottom-5 right-8 font-mono text-base text-dim z-50 select-none">
+              {String(current + 1).padStart(2, '0')}<span className="text-border mx-1">/</span>{String(total).padStart(2, '0')}
+            </div>
+          </div>
+
+          <div className="print-only bg-bg">
+            {slides.map((S, i) => (
+              <div key={i} className="print-slide">
+                <S />
+              </div>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
