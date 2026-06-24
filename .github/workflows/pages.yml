@@ -26,18 +26,18 @@ jobs:
 
       - name: Prepare static artifact
         run: |
-          mkdir public
+          mkdir /tmp/pages-public
           rsync -a \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='.DS_Store' \
-            ./ public/
+            ./ /tmp/pages-public/
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: /tmp/pages-public
 
       - id: deployment
         uses: actions/deploy-pages@v4
