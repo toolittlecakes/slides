@@ -207,6 +207,12 @@
       .speaker-photo-wrap img { max-width: 220px; }
     }
 
+    @media screen and (pointer: coarse) {
+      .slide-link-qr {
+        display: none;
+      }
+    }
+
     @page {
       size: 16in 9in;
       margin: 0;
@@ -468,7 +474,7 @@
               href="https://slides.grably.tech/agentic_dev_conf/"
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-md border border-border bg-white p-0.5 shadow-glow"
+              className="slide-link-qr block rounded-md border border-border bg-white p-0.5 shadow-glow"
               aria-label="Презентация со ссылками"
             >
               <img src="./assets/qr.png" alt="QR code" className="h-28 w-28 object-contain" />
