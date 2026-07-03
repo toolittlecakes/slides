@@ -134,6 +134,27 @@
       box-shadow: 0 0 0 3px rgba(217, 79, 50, 0.12);
     }
 
+    .trend-media figure {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-start;
+    }
+
+    .trend-media img {
+      width: 100%;
+      max-height: min(410px, calc(100% - 36px));
+      object-fit: contain;
+    }
+
+    .trend-media a {
+      align-self: center;
+      flex-shrink: 0;
+    }
+
     ol.slide-ol {
       list-style: none;
       counter-reset: step;
@@ -242,7 +263,9 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useCallback } = React;
+    const { useState, useEffect, useCallback, useContext } = React;
+
+    const PrintSolutionContext = React.createContext('screen');
 
     function Slide({ children, className = '', contentClassName = '', align = 'center', background = null }) {
       return (
@@ -283,10 +306,10 @@
       );
     }
 
-    function H2({ children }) {
+    function H2({ children, className = "", wrapperClassName = "max-w-5xl" }) {
       return (
-        <div className="mb-9 max-w-5xl mx-auto w-full">
-          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">{children}</h2>
+        <div className={`mb-9 ${wrapperClassName} mx-auto w-full`}>
+          <h2 className={`font-display text-5xl font-700 tracking-tight leading-tight ${className}`}>{children}</h2>
         </div>
       );
     }
@@ -306,7 +329,7 @@
       ];
       const pct = (active / (steps.length - 1)) * 100;
       return (
-        <div className="absolute left-48 right-48 bottom-4 h-12">
+        <div className="w-full h-16 shrink-0">
           <div className="relative h-full">
             <div className="absolute left-[6px] right-[6px] top-[6px] h-[2px] bg-border" />
             <div className="absolute left-[6px] top-[6px] h-[2px] bg-accent transition-all duration-500" style={{ width: `calc((100% - 12px) * ${pct / 100})` }} />
@@ -340,18 +363,41 @@
       );
     }
 
-    function Solution({ children }) {
-      const [open, setOpen] = useState(false);
+    function DarkPanel({ children, className = '' }) {
       return (
-        <div className="glass rounded-2xl mt-6 overflow-hidden transition-all" data-solution-open={open ? 'true' : 'false'}>
+        <div className={`rounded-2xl border border-white/14 bg-white/[0.07] p-8 shadow-[0_24px_70px_rgba(0,0,0,0.28)] ${className}`}>
+          {children}
+        </div>
+      );
+    }
+
+    function Solution({ children }) {
+      const printMode = useContext(PrintSolutionContext);
+      const [open, setOpen] = useState(false);
+      if (printMode === 'closed') {
+        return (
+          <div className="glass rounded-2xl mt-6 overflow-hidden" data-solution-open="false">
+            <div className="w-full flex items-center justify-between gap-4 px-8 py-5 text-left">
+              <span className="font-display text-lg text-[#1f7a42]">Решение</span>
+              <span className="font-mono text-xl text-[#1f7a42]">+</span>
+            </div>
+          </div>
+        );
+      }
+      const isForced = printMode !== 'screen';
+      const isOpen = isForced ? printMode === 'open' : open;
+      return (
+        <div className="glass rounded-2xl mt-6 overflow-hidden transition-all" data-solution-open={isOpen ? 'true' : 'false'}>
           <button
-            onClick={() => setOpen(o => !o)}
+            onClick={() => {
+              if (!isForced) setOpen(o => !o);
+            }}
             className="w-full flex items-center justify-between gap-4 px-8 py-5 text-left hover:bg-[#edf7f0] transition-colors"
           >
             <span className="font-display text-lg text-[#1f7a42]">Решение</span>
-            <span className={`font-mono text-xl text-[#1f7a42] transition-transform ${open ? 'rotate-45' : ''}`}>+</span>
+            <span className={`font-mono text-xl text-[#1f7a42] transition-transform ${isOpen ? 'rotate-45' : ''}`}>+</span>
           </button>
-          <div className={`grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+          <div className={`grid transition-all duration-300 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
             <div className="overflow-hidden">
               <div className="px-8 pb-7 font-body text-xl text-[#111827] leading-relaxed">
                 {children}
@@ -364,20 +410,28 @@
 
     function TrendSlide({ active, items, children }) {
       return (
-        <Slide align="start" contentClassName="pt-8">
-          <HistoricalTimeline active={active} />
-          <H2>Тренды прошлого</H2>
-          <div className="grid grid-cols-[0.58fr_1.42fr] gap-8 max-w-6xl mx-auto w-full items-start">
-            <ol className="slide-ol space-y-5 font-body text-xl text-[#111827] leading-snug">
-              {items.map((item, i) => (
-                <li key={item} className={i === items.length - 1 ? 'font-700 text-[#111827]' : 'text-muted'}>
-                  {item}
-                </li>
-              ))}
-            </ol>
-            <div className="flex items-start justify-center min-h-[420px] max-h-[420px]">
-              {children}
+        <Slide align="start" className="!px-24" contentClassName="pt-8 pb-10 h-full flex flex-col !max-w-[1220px]">
+          <div className="mb-8 max-w-[1220px] mx-auto w-full">
+            <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">Тренды прошлого</h2>
+          </div>
+          <div className="grid grid-cols-[280px_minmax(0,1fr)] gap-8 max-w-[1220px] mx-auto w-full flex-1 min-h-0">
+            <div className="pt-2">
+              <ol className="slide-ol space-y-5 font-body text-xl text-[#111827] leading-snug">
+                {items.map((item, i) => (
+                  <li key={item} className={i === items.length - 1 ? 'font-700 text-[#111827]' : 'text-muted'}>
+                    {item}
+                  </li>
+                ))}
+              </ol>
             </div>
+            <div className="min-w-0 min-h-0 flex flex-col">
+              <div className="trend-media min-h-0 flex-1">
+                {children}
+              </div>
+            </div>
+          </div>
+          <div className="max-w-[1220px] mx-auto w-full pt-8">
+            <HistoricalTimeline active={active} />
           </div>
         </Slide>
       );
@@ -401,7 +455,8 @@
     }
 
     function SlideChrome({ current, total, mode = 'screen' }) {
-      const showQr = current !== 0 && current !== total - 1;
+      const showCounter = current !== 0 && current < total;
+      const showQr = current !== 0 && current < total - 1;
       const rootClass = mode === 'print'
         ? 'absolute bottom-5 right-8 z-50 flex flex-col items-center gap-2'
         : 'fixed bottom-5 right-8 z-50 flex flex-col items-center gap-2';
@@ -419,9 +474,11 @@
               <img src="./assets/qr.png" alt="QR code" className="h-28 w-28 object-contain" />
             </a>
           )}
-          <div className="font-mono text-base leading-none text-dim select-none">
-            {String(current + 1).padStart(2, '0')}<span className="text-border mx-1">/</span>{String(total).padStart(2, '0')}
-          </div>
+          {showCounter && (
+            <div className="font-mono text-base leading-none text-dim select-none">
+              {String(current + 1).padStart(2, '0')}<span className="text-border mx-1">/</span>{String(total).padStart(2, '0')}
+            </div>
+          )}
         </div>
       );
     }
@@ -461,8 +518,8 @@
                   <p className="font-body text-sm font-700 text-[#111827]">AI и грабли</p>
                   <p className="font-mono text-xs text-dim truncate">t.me/ai_grably</p>
                 </div>
-                <div className="ml-auto w-9 h-9 rounded-full border border-accent/30 bg-[#fff3ee] flex items-center justify-center flex-shrink-0">
-                  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-accent">
+                <div className="ml-auto w-9 h-9 rounded-full border border-[#2aabee]/30 bg-[#eaf7ff] flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-[#2aabee]">
                     <path d="M9.04 15.47 8.7 20.3c.49 0 .7-.21.95-.46l2.28-2.18 4.72 3.46c.86.48 1.47.23 1.7-.8l3.08-14.45v-.01c.29-1.29-.47-1.8-1.3-1.5L1.96 9.02c-1.25.49-1.23 1.19-.22 1.5l4.71 1.47L17.4 5.2c.52-.34 1-.15.6.2L9.04 15.47Z" />
                   </svg>
                 </div>
@@ -475,12 +532,12 @@
       // 2. План
       () => (
         <Slide>
-          <H2>План</H2>
-          <ol className="slide-ol grid grid-cols-2 gap-5 font-body text-3xl text-[#111827] max-w-6xl mx-auto w-full leading-snug">
-            <li><Panel className="h-full">что уже происходит с SDLC</Panel></li>
-            <li><Panel className="h-full">топ ошибок при внедрении ИИ</Panel></li>
-            <li><Panel className="h-full">лайфхаки и best-practices</Panel></li>
-            <li><Panel className="h-full">что ждет завтра (и как готовиться)</Panel></li>
+          <H2 wrapperClassName="max-w-4xl">План</H2>
+          <ol className="slide-ol space-y-5 font-body text-2xl text-[#111827] max-w-4xl mx-auto w-full leading-relaxed">
+            <li>что уже происходит с SDLC</li>
+            <li>топ ошибок при внедрении ИИ</li>
+            <li>лайфхаки и best-practices</li>
+            <li>что ждет завтра (и как готовиться)</li>
           </ol>
         </Slide>
       ),
@@ -556,15 +613,43 @@
       // 8. Распределение времени
       () => (
         <Slide contentClassName="flex flex-col items-center text-center">
-          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Распределение времени</h2>
-          <img src="./assets/time-distribution.png" alt="Time distribution" className="w-full max-w-5xl max-h-[500px] object-contain rounded-xl mx-auto" />
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-14">Распределение времени</h2>
+          <div className="grid grid-cols-3 gap-12 max-w-6xl w-full items-end">
+            {[
+              { title: "До ИИ", bars: [["Plan", 34], ["Dev", 88], ["Verify", 54]] },
+              { title: "С ИИ сейчас", bars: [["Plan", 68], ["Dev", 48], ["Verify", 76]] },
+              { title: "С ИИ завтра", bars: [["Plan", 56], ["Dev", 0], ["Verify", 88]] },
+            ].map((group) => (
+              <div key={group.title} className="flex flex-col items-center">
+                <div className="flex items-end justify-center gap-4 h-[260px] mb-5">
+                  {group.bars.map(([label, height]) => {
+                    const colors = {
+                      Plan: "border-[#2fa85b] bg-[#b8f3c2] text-[#2fa85b]",
+                      Dev: "border-[#2b82c7] bg-[#a8d6fb] text-[#2b82c7]",
+                      Verify: "border-[#d94848] bg-[#ffc2c2] text-[#d94848]",
+                    };
+                    return (
+                      <div key={label} className="flex flex-col items-center gap-3">
+                        <div
+                          className={`w-20 rounded-xl border-2 shadow-[0_12px_24px_rgba(17,24,39,0.08)] ${colors[label]}`}
+                          style={{ height: `${height * 2.6}px` }}
+                        />
+                        <p className={`font-display text-2xl font-700 ${colors[label].split(" ").at(-1)}`}>{label}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="font-display text-4xl text-[#111827] leading-none whitespace-nowrap">{group.title}</p>
+              </div>
+            ))}
+          </div>
         </Slide>
       ),
 
       // 10. Суммируем
       () => (
         <Slide>
-          <H2>Суммируем</H2>
+          <H2 wrapperClassName="max-w-6xl">Суммируем</H2>
           <div className="grid grid-cols-3 gap-5 max-w-6xl mx-auto w-full">
             <Panel className="p-7">
               <p className="font-body text-3xl leading-tight text-[#111827]">Проблемы с оценкой эффективности</p>
@@ -582,36 +667,36 @@
       // 11. Ошибка 1. Работа в синхронном режиме
       () => (
         <Slide contentClassName="flex flex-col items-center text-center">
-          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-8">Ошибка 1. Работа в синхронном режиме</h2>
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch max-w-6xl w-full">
-            <Panel className="p-7 text-left">
-              <p className="font-display text-3xl font-700 text-[#111827] mb-2">Developer mode</p>
-              <p className="font-mono text-xl text-muted mb-6">CPU-bound</p>
-              <p className="font-body text-3xl leading-tight text-[#111827]">Developer</p>
-            </Panel>
-            <div className="flex items-center justify-center">
-              <span className="font-display text-5xl font-700 text-dim">→</span>
+          <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Ошибка 1. Работа в синхронном режиме</h2>
+          <Panel className="max-w-3xl w-full">
+            <div className="flex items-center justify-center gap-10">
+              <div className="text-center">
+                <p className="font-display text-2xl text-[#111827]">Developer</p>
+                <p className="font-mono text-base text-muted mt-2">CPU-bound</p>
+              </div>
+              <p className="font-display text-2xl text-dim">vs</p>
+              <div className="text-center">
+                <p className="font-display text-2xl text-[#111827]">Engineering Manager</p>
+                <p className="font-mono text-base text-muted mt-2">IO-bound</p>
+              </div>
             </div>
-            <Panel className="p-7 text-left border-accent/40">
-              <p className="font-display text-3xl font-700 text-accent mb-2">Engineering Manager</p>
-              <p className="font-mono text-xl text-muted mb-6">IO-bound</p>
-              <p className="font-body text-3xl leading-tight text-[#111827]">Manager</p>
             </Panel>
-          </div>
         </Slide>
       ),
 
       // 12. Кейс 1: Перенос фронтенда на новый стек
       () => (
-        <Slide>
-          <H2>Кейс 1: Перенос фронтенда на новый стек</H2>
-          <Panel className="max-w-5xl mx-auto w-full">
-            <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] leading-relaxed">
+        <Slide className="bg-[#0b0f19] text-white">
+          <div className="mb-9 max-w-5xl mx-auto w-full">
+            <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">Кейс 1: Перенос фронтенда на новый стек</h2>
+          </div>
+          <DarkPanel className="max-w-5xl mx-auto w-full">
+            <ul className="slide-list space-y-5 font-body text-2xl text-white/86 leading-relaxed">
               <li>Компания оплачивает ИИ для команды</li>
               <li>Команда пользуется, но кто как умеет, централизированной настройки почти нет</li>
               <li>Перевозят фронт на новый стек, хотят ускорить за счет ИИ, заодно прокачаться</li>
             </ul>
-          </Panel>
+          </DarkPanel>
         </Slide>
       ),
 
@@ -624,22 +709,14 @@
       () => (
         <Slide>
           <H2>Ошибка 2. Feedback Loop</H2>
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch max-w-6xl mx-auto w-full">
-            <Panel className="p-7 text-left">
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel>
+              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-relaxed">
                 <li>Агент пишет код</li>
                 <li>Тестит человек в браузере</li>
               </ul>
             </Panel>
-            <div className="flex items-center justify-center">
-              <span className="font-display text-5xl font-700 text-dim">→</span>
-            </div>
-            <Panel className="p-7 text-left border-accent/40">
-              <p className="font-display text-2xl font-700 text-accent mb-5">Решение</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
-                <li>Агент сравнивает старый и новый фронт</li>
-              </ul>
-            </Panel>
+            <Solution>Агент сравнивает старый и новый фронт</Solution>
           </div>
         </Slide>
       ),
@@ -648,25 +725,21 @@
       () => (
         <Slide>
           <H2>Ошибка 3. Слишком мало времени на планирование</H2>
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch max-w-6xl mx-auto w-full">
-            <Panel className="p-7 text-left">
-              <p className="font-display text-2xl font-700 text-[#111827] mb-5">Плохо</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#111827] leading-relaxed">
                 <li>Команда вайбкодит в режиме кранча</li>
                 <li>Потом архитектурные проблемы, которые блочат разработку</li>
                 <li>Код возвращается на доработку, вся продуктивность съедается</li>
               </ul>
             </Panel>
-            <div className="flex items-center justify-center">
-              <span className="font-display text-5xl font-700 text-dim">→</span>
-            </div>
-            <Panel className="p-7 text-left border-accent/40">
-              <p className="font-display text-2xl font-700 text-accent mb-5">Решение</p>
-              <ol className="slide-ol space-y-4 font-body text-2xl text-[#111827] leading-snug">
+            <Solution>
+              <p className="mb-3">Норма:</p>
+              <ol className="slide-ol space-y-2">
                 <li>Планирование занимает несколько часов</li>
                 <li>Агент в один заход делает реализацию</li>
               </ol>
-            </Panel>
+            </Solution>
           </div>
         </Slide>
       ),
@@ -675,23 +748,14 @@
       () => (
         <Slide>
           <H2>Ошибка 4. Использовать устаревшие инструменты</H2>
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch max-w-6xl mx-auto w-full">
-            <Panel className="p-7 text-left">
-              <p className="font-display text-2xl font-700 text-[#111827] mb-5">Плохо</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel>
+              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-relaxed">
                 <li>Используют Cursor</li>
                 <li>Платят за токены</li>
               </ul>
             </Panel>
-            <div className="flex items-center justify-center">
-              <span className="font-display text-5xl font-700 text-dim">→</span>
-            </div>
-            <Panel className="p-7 text-left border-accent/40">
-              <p className="font-display text-2xl font-700 text-accent mb-5">Решение</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
-                <li>Codex / Claude Code</li>
-              </ul>
-            </Panel>
+            <Solution>Codex / Claude Code</Solution>
           </div>
         </Slide>
       ),
@@ -699,7 +763,7 @@
       // 17. Первые попытки
       () => (
         <Slide>
-          <H2>Первые попытки</H2>
+          <H2 wrapperClassName="max-w-4xl">Первые попытки</H2>
           <ul className="slide-list space-y-6 font-body text-2xl text-[#111827] leading-relaxed max-w-4xl mx-auto w-full">
             <li>Cursor -> Claude Code</li>
             <li>Опросник для команды (для CLAUDE.md)</li>
@@ -709,51 +773,48 @@
         </Slide>
       ),
 
-      // 18. Ошибка 5. Пытаться пушить сразу всех
+      // 18. Ошибка 5. Делать внутренние инструменты внешнему эксперту
       () => (
         <Slide>
           <div className="mb-9 max-w-5xl mx-auto w-full">
             <p className="font-body text-xl italic text-muted mb-3">Что могло пойти не так?</p>
-            <h2 className="font-display text-4xl font-700 tracking-tight leading-tight">Ошибка 5. Пытаться пушить сразу всех</h2>
+            <h2 className="font-display text-4xl font-700 tracking-tight leading-tight">Ошибка 5. Делать внутренние инструменты внешнему эксперту</h2>
           </div>
-          <div className="max-w-5xl mx-auto w-full">
-            <Panel className="p-8">
-              <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] leading-snug">
-                <li>Проблема 1: разная степень сопротивления</li>
-                <li>Всегда есть те, кто готов пробовать новое, и те, кто будет до последнего относиться скептически</li>
-                <li>Гораздо эффективнее прокачать тех, кто готов, чтобы они потом заражали коллег</li>
-              </ul>
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 1: Tacit Knowledge (неявные знания)</p>
+            </Panel>
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 2: Магический артефакт</p>
             </Panel>
           </div>
         </Slide>
       ),
 
-      // 19. Ошибка 5. Разная степень "ИИ-нативности"
+      // 19. Ошибка 6. Пытаться пушить сразу всех
       () => (
         <Slide>
           <div className="mb-9 max-w-5xl mx-auto w-full">
             <p className="font-body text-xl italic text-muted mb-3">Что могло пойти не так?</p>
-            <h2 className="font-display text-4xl font-700 tracking-tight leading-tight">Ошибка 5. Разная степень "ИИ-нативности"</h2>
+            <h2 className="font-display text-4xl font-700 tracking-tight leading-tight">Ошибка 6. Пытаться пушить сразу всех</h2>
           </div>
-          <div className="max-w-5xl mx-auto w-full">
-            <Panel className="p-8">
-              <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] leading-snug">
-                <li>Не все, кто "хочет" пробовать новое, на самом деле подходят для этого</li>
-                <li>Раньше нас ценили за возможность забуриться в проблему и сконцентрированно решать ее</li>
-                <li>Сейчас это может делать ИИ, а нам нужно стать асинхронными менеджерами</li>
-                <li>Важно выбрать людей, у которых есть нативные черты асинхронного менеджера</li>
-              </ul>
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 1: Разная степень сопротивления</p>
+            </Panel>
+            <Panel>
+              <p className="font-display text-xl text-accent mb-2">Проблема 2: Разная степень "ИИ-нативности"</p>
             </Panel>
           </div>
         </Slide>
       ),
 
-      // 20. Ошибка 6. Учить пользоваться ИИ на примере переноса фронта на новый стек
+      // 20. Ошибка 7. Учить пользоваться ИИ на примере переноса фронта
       () => (
         <Slide>
           <div className="mb-9 max-w-5xl mx-auto w-full">
             <p className="font-body text-xl italic text-muted mb-3">Что могло пойти не так?</p>
-            <h2 className="font-display text-4xl font-700 tracking-tight leading-tight">Ошибка 6. Учить пользоваться ИИ на примере переноса фронта на новый стек</h2>
+            <h2 className="font-display text-4xl font-700 tracking-tight leading-tight">Ошибка 7. Учить пользоваться ИИ на примере переноса фронта</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto w-full items-stretch">
             <Panel className="h-full">
@@ -777,7 +838,7 @@
       // 21. Решение
       () => (
         <Slide>
-          <H2>Решение</H2>
+          <H2 wrapperClassName="max-w-4xl">Решение</H2>
           <ol className="slide-ol space-y-5 font-body text-2xl text-[#111827] max-w-4xl mx-auto w-full leading-relaxed">
             <li>Видео, где я сам реализую одну фичу</li>
             <li>Скрипт выгрузки сессий Claude Code</li>
@@ -790,14 +851,16 @@
 
       // 22. Кейс 2: Аудит процессов
       () => (
-        <Slide>
-          <H2>Кейс 2: Аудит процессов в команде</H2>
-          <Panel className="max-w-5xl mx-auto w-full">
-            <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] leading-relaxed">
+        <Slide className="bg-[#0b0f19] text-white">
+          <div className="mb-9 max-w-5xl mx-auto w-full">
+            <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">Кейс 2: Аудит процессов в команде</h2>
+          </div>
+          <DarkPanel className="max-w-5xl mx-auto w-full">
+            <ul className="slide-list space-y-5 font-body text-2xl text-white/86 leading-relaxed">
               <li>Европейский аутсорс</li>
               <li>Успехи есть, хотят больше</li>
             </ul>
-          </Panel>
+          </DarkPanel>
         </Slide>
       ),
 
@@ -820,37 +883,36 @@
         </Slide>
       ),
 
-      // 25. Ошибка 7. Считать не те метрики
+      // 25. Ошибка 8. Считать не те метрики
       () => (
         <Slide>
-          <H2>Ошибка 7. Считать не те метрики</H2>
-          <Panel className="max-w-5xl mx-auto w-full p-8">
-            <ul className="slide-list space-y-5 font-body text-3xl text-[#111827] leading-snug">
-              <li>LOC</li>
-              <li>Число коммитов</li>
-              <li>Число PR</li>
-              <li>Скорость выкатки фичей</li>
-            </ul>
-          </Panel>
-        </Slide>
-      ),
-
-      // 26. Хорошие метрики
-      () => (
-        <Slide>
-          <H2>Хорошие метрики</H2>
-          <div className="grid grid-cols-2 gap-5 max-w-6xl mx-auto w-full">
-            <Panel className="p-7">
-              <p className="font-body text-3xl leading-tight text-[#111827]">Количество выполненных задач на единицу времени</p>
+          <H2>Ошибка 8. Считать не те метрики</H2>
+          <div className="grid grid-cols-3 gap-5 max-w-5xl mx-auto w-full">
+            <Panel className="h-full">
+              <p className="font-display text-xl text-accent mb-4">Плохо</p>
+              <ul className="slide-list-sm space-y-3 font-body text-lg text-[#111827]">
+                <li>LOC</li>
+                <li>Число коммитов</li>
+                <li>Число PR</li>
+                <li>Скорость выкатки фичей</li>
+              </ul>
             </Panel>
-            <Panel className="p-7">
-              <p className="font-body text-3xl leading-tight text-[#111827]">Задача выполнена, если не возвращается на доработку</p>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-[#1f7a42] mb-4">Хорошо</p>
+              <ul className="slide-list-sm space-y-3 font-body text-lg text-[#111827]">
+                <li>Количество выполненных задач на единицу времени</li>
+              </ul>
+              <blockquote className="mt-5 border-l-4 border-[#1f7a42]/35 pl-4 font-body text-base text-muted leading-snug">
+                Задача выполнена, если не возвращается на доработку
+              </blockquote>
             </Panel>
-            <Panel className="p-7">
-              <p className="font-body text-3xl leading-tight text-[#111827]">Время жизни задачи</p>
-            </Panel>
-            <Panel className="p-7">
-              <p className="font-body text-3xl leading-tight text-[#111827]">Количество доработок / время на доработке</p>
+            <Panel className="h-full">
+              <p className="font-display text-xl text-muted mb-4">Доп</p>
+              <ul className="slide-list-sm space-y-3 font-body text-lg text-[#111827]">
+                <li>Время жизни задачи</li>
+                <li>Количество доработок</li>
+                <li>Время на доработке</li>
+              </ul>
             </Panel>
           </div>
         </Slide>
@@ -860,86 +922,118 @@
       () => (
         <Slide contentClassName="flex flex-col items-center text-center">
           <h2 className="font-display text-5xl font-700 tracking-tight leading-tight mb-9">Что узнали?</h2>
-          <Panel className="max-w-5xl w-full p-10">
-            <p className="font-display text-5xl font-700 text-[#111827] leading-tight">
-              PR-ов много, но ревью все тормозит
+          <Panel className="max-w-3xl w-full">
+            <p className="font-body text-2xl text-[#111827] leading-relaxed">
+              PR-ов много, но <span className="text-[#e34b32] font-700">ревью</span> всё тормозит
             </p>
           </Panel>
         </Slide>
       ),
 
-      // 28. Ошибка 8. Делать ревью вручную
+      // 28. Ошибка 9. Делать ревью вручную
       () => (
         <Slide>
-          <H2>Ошибка 8. Делать ревью вручную</H2>
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch max-w-6xl mx-auto w-full">
-            <Panel className="p-7 text-left">
-              <p className="font-display text-2xl font-700 text-[#111827] mb-5">Плохо</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
+          <H2>Ошибка 9. Делать ревью вручную</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel>
+              <ul className="slide-list space-y-4 font-body text-xl text-[#111827] leading-relaxed">
                 <li>Ревью становится боттлнеком</li>
-                <li>Либо тормозит процесс</li>
-                <li>Либо снижается качество</li>
+                <li>Либо тормозит процесс, либо снижается качество</li>
               </ul>
             </Panel>
-            <div className="flex items-center justify-center">
-              <span className="font-display text-5xl font-700 text-dim">→</span>
-            </div>
-            <Panel className="p-7 text-left border-accent/40">
-              <p className="font-display text-2xl font-700 text-accent mb-5">Решение</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
-                <li>Делать <span className="font-700">вместе</span> с агентом</li>
-                <li>Хак: представьте, что он студент, который сдает вам экзамен</li>
-              </ul>
-            </Panel>
+            <Solution>
+              <p>Делать <span className="text-accent font-600">вместе</span> с агентом</p>
+              <p className="font-mono text-base text-muted mt-3 italic">Хак: представьте, что он студент, который сдаёт вам экзамен</p>
+            </Solution>
           </div>
         </Slide>
       ),
 
       // 29. Кейс 3: Большая кодовая база
       () => (
-        <Slide>
-          <H2>Кейс 3: Большая кодовая база</H2>
-          <Panel className="max-w-5xl mx-auto w-full p-10">
-            <p className="font-display text-5xl font-700 text-[#111827] leading-tight">Проклятье compaction</p>
-          </Panel>
-        </Slide>
-      ),
-
-      // 30. Проклятье compaction
-      () => (
-        <Slide>
-          <H2>Проклятье compaction</H2>
-          <Panel className="max-w-5xl mx-auto w-full p-10">
-            <p className="font-body text-3xl text-[#111827] leading-snug">
+        <Slide className="bg-[#0b0f19] text-white">
+          <div className="mb-9 max-w-5xl mx-auto w-full">
+            <h2 className="font-display text-5xl font-700 tracking-tight leading-tight">Кейс 3: Большая кодовая база</h2>
+          </div>
+          <DarkPanel className="max-w-5xl mx-auto w-full p-10">
+            <p className="font-display text-5xl font-700 text-accent leading-tight mb-7">Проклятье compaction</p>
+            <p className="font-body text-3xl text-white/86 leading-snug max-w-4xl">
               Агент упирается в лимит, делает compaction и пока восстанавливает контекст снова упирается в лимит
             </p>
-          </Panel>
+          </DarkPanel>
         </Slide>
       ),
 
-      // 31. Ошибка 9
+      // 30. Ошибка 10
       () => (
         <Slide>
-          <H2>Ошибка 9. Забивать на лучшие практики разработки</H2>
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch max-w-6xl mx-auto w-full">
-            <Panel className="p-7 text-left">
-              <p className="font-display text-2xl font-700 text-[#111827] mb-5">Проблема</p>
-              <p className="font-body text-3xl leading-tight text-[#111827]">
+          <H2>Ошибка 10. Забивать на лучшие практики разработки</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel>
+              <p className="font-body text-xl text-[#111827] leading-relaxed">
                 Протекшие абстракции → агенту нужно много контекста
               </p>
             </Panel>
-            <div className="flex items-center justify-center">
-              <span className="font-display text-5xl font-700 text-dim">→</span>
-            </div>
-            <Panel className="p-7 text-left border-accent/40">
-              <p className="font-display text-2xl font-700 text-accent mb-5">Решение: локализовать работу</p>
-              <ul className="slide-list space-y-4 font-body text-2xl text-[#111827] leading-snug">
+            <Solution>
+              <ul className="slide-list-sm space-y-2 font-body text-lg">
                 <li>Деды придумали best practices</li>
                 <li>Loose Coupling, High Cohesion</li>
                 <li>Для выполнения задачи не нужен весь контекст</li>
-                <li>Альтернатива: следить за индексом документации</li>
               </ul>
+              <p className="font-mono text-base text-muted mt-4">Альтернатива: следить за индексом документации</p>
+            </Solution>
+          </div>
+        </Slide>
+      ),
+
+      // 31. Ошибка 11
+      () => (
+        <Slide>
+          <H2 className="text-4xl">Ошибка 11. Использовать голый grep</H2>
+          <div className="max-w-5xl mx-auto w-full">
+            <Panel className="p-5">
+              <p className="font-body text-lg text-[#111827] leading-relaxed">
+                grep на слишком больших кодовых базах = мусор
+              </p>
             </Panel>
+            <Solution>
+              <p className="mb-4">
+                Использовать{" "}
+                <a href="https://github.com/defendend/Claude-ast-index-search" target="_blank" rel="noopener noreferrer" className="text-[#45a3ff] underline decoration-[#45a3ff]/35 underline-offset-4 hover:text-accent hover:decoration-accent/55 transition-colors">
+                  ast search
+                </a>
+              </p>
+              <p className="font-body text-base text-[#111827] leading-snug mb-3">
+                Benchmarks on large Android project <span className="text-muted">(~29k files, ~300k symbols)</span>
+              </p>
+              <table className="w-full border-collapse font-body text-base text-[#111827]">
+                <thead>
+                  <tr className="font-display text-lg font-700">
+                    <th className="border border-[#cfd6df] px-3 py-1.5 text-left whitespace-nowrap">Command</th>
+                    <th className="border border-[#cfd6df] px-3 py-1.5 text-left whitespace-nowrap">ast-index</th>
+                    <th className="border border-[#cfd6df] px-3 py-1.5 text-left whitespace-nowrap">grep</th>
+                    <th className="border border-[#cfd6df] px-3 py-1.5 text-left whitespace-nowrap">Speedup</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["imports", "0.3ms", "90ms", "260x"],
+                    ["dependents", "2ms", "100ms", "100x"],
+                    ["deps", "3ms", "90ms", "90x"],
+                    ["class", "1ms", "90ms", "90x"],
+                    ["search", "11ms", "280ms", "14x"],
+                    ["usages", "8ms", "90ms", "12x"],
+                  ].map(([command, ast, grep, speedup]) => (
+                    <tr key={command} className="odd:bg-white even:bg-[#f5f7fa]">
+                      <td className="border border-[#cfd6df] px-3 py-1.5 whitespace-nowrap">{command}</td>
+                      <td className="border border-[#cfd6df] px-3 py-1.5 whitespace-nowrap">{ast}</td>
+                      <td className="border border-[#cfd6df] px-3 py-1.5 whitespace-nowrap">{grep}</td>
+                      <td className="border border-[#cfd6df] px-3 py-1.5 font-700 whitespace-nowrap">{speedup}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Solution>
           </div>
         </Slide>
       ),
@@ -952,8 +1046,8 @@
             <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] leading-snug">
               <li>Миддл упоролся и выстроил весь AI SDLC в компании</li>
               <li>Ему отказались повышать зп на 50к</li>
-              <li><span className="font-700">Итог:</span> ушел в другую компанию на 150к+</li>
             </ul>
+            <p className="font-display text-2xl text-accent mt-6">Итог: ушел в другую компанию на 150к+</p>
           </Panel>
         </Slide>
       ),
@@ -966,21 +1060,30 @@
             <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] leading-snug">
               <li>Стартап пытался в spec-driven девелопмент</li>
               <li>Когда получали результат, всё переделывали</li>
-              <li><span className="font-700">Итог:</span> сначала прототип, потом уже спека</li>
             </ul>
+            <p className="font-display text-2xl text-accent mt-6">Итог: сначала прототип, потом уже спека</p>
           </Panel>
         </Slide>
       ),
 
       // 37. Что ждём завтра?
       () => (
-        <TitleSlide title="Что ждём завтра?" subtitle="тренды vs хайп" />
+        <Slide className="bg-[#0b0f19] text-white items-center text-center">
+          <div className="w-full flex flex-col items-center">
+            <h1 className="font-display text-6xl font-800 tracking-tight leading-tight max-w-5xl">
+              Что ждём завтра?
+            </h1>
+            <p className="font-body text-2xl text-white/52 mt-8 max-w-4xl leading-relaxed">
+              тренды vs хайп
+            </p>
+          </div>
+        </Slide>
       ),
 
       // 38. Продакт-инженер
       () => (
         <Slide>
-          <H2>Продакт-инженер</H2>
+          <H2 wrapperClassName="max-w-4xl">Продакт-инженер</H2>
           <ul className="slide-list space-y-6 font-body text-2xl text-[#111827] leading-relaxed max-w-4xl mx-auto w-full">
             <li>Быть просто разработчиком уже нельзя</li>
             <li>Для Plan и Review нужно понимание продукта</li>
@@ -992,29 +1095,18 @@
       // 39. Intelligence vs Judgement
       () => (
         <Slide>
-          <H2>Intelligence vs Judgement</H2>
-          <div className="max-w-5xl mx-auto w-full space-y-8">
-            <div className="grid grid-cols-[1fr_auto_1fr] gap-5 items-center">
-              <Panel className="p-8 text-center">
-                <p className="font-display text-4xl font-700 text-[#111827]">У ИИ</p>
-                <p className="font-body text-2xl text-muted mt-3">усреднённый вкус</p>
-              </Panel>
-              <span className="font-display text-5xl font-700 text-dim">≠</span>
-              <Panel className="p-8 text-center border-accent/40">
-                <p className="font-display text-4xl font-700 text-accent">Доменная экспертиза</p>
-              </Panel>
-            </div>
-            <p className="font-body text-3xl text-[#111827] leading-snug text-center">
-              ИИ может сделать сотней способов, нужно подсказать, каким именно подходит в нашем специфичном контексте
-            </p>
-          </div>
+          <H2 wrapperClassName="max-w-4xl">Intelligence vs Judgement</H2>
+          <ul className="slide-list space-y-6 font-body text-2xl text-[#111827] leading-relaxed max-w-4xl mx-auto w-full">
+            <li>У ИИ – усреднённый вкус</li>
+            <li>Доменная экспертиза = ценность</li>
+          </ul>
         </Slide>
       ),
 
       // 40. Две роли
       () => (
         <Slide>
-          <H2>Две роли</H2>
+          <H2 wrapperClassName="max-w-6xl">Две роли</H2>
           <div className="grid grid-cols-2 gap-6 max-w-6xl mx-auto w-full items-stretch">
             <Panel className="h-full">
               <p className="font-display text-3xl font-700 text-accent mb-5">Agentic Engineer</p>
@@ -1039,7 +1131,7 @@
       // 41. Токены дорожают
       () => (
         <Slide>
-          <H2>Токены дорожают</H2>
+          <H2 className="text-center">Токены дорожают</H2>
           <div className="max-w-5xl mx-auto w-full" />
         </Slide>
       ),
@@ -1047,33 +1139,13 @@
       // 42. Agent Evolution
       () => (
         <Slide>
-          <H2>Agent Evolution</H2>
+          <H2 wrapperClassName="max-w-4xl">Agent Evolution</H2>
           <ol className="slide-ol space-y-5 font-body text-2xl text-[#111827] max-w-4xl mx-auto w-full leading-relaxed">
             <li>Проводим агента за ручку по задаче <span className="text-dim text-xl">(онбординг)</span></li>
             <li>"Оформи это в скилл" <span className="text-dim text-xl">(документация для следующих новичков)</span></li>
             <li>Напарываемся на новые проблемы</li>
             <li>"Обнови скилл"</li>
           </ol>
-        </Slide>
-      ),
-
-      // 43. Сдвиг парадигмы разработки
-      () => (
-        <Slide contentClassName="flex flex-col items-center text-center">
-          <h2 className="font-display text-4xl font-700 tracking-tight leading-tight mb-5">Сдвиг парадигмы разработки</h2>
-          <img
-            src="./assets/agent-paradigm-layers-comparison.png"
-            alt="Сравнение pipeline и agent-подхода"
-            className="w-full max-w-5xl max-h-[500px] object-contain rounded-xl border border-border bg-bg shadow-glow"
-          />
-          <a
-            href="https://slides.grably.tech/agent-paradigm-layers.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-block font-mono text-sm text-muted hover:text-accent transition-colors"
-          >
-            Подробнее
-          </a>
         </Slide>
       ),
 
@@ -1182,7 +1254,13 @@
         <Slide>
           <H2>Итоги: Чего ждать?</H2>
           <ul className="slide-list space-y-5 font-body text-3xl text-[#111827] max-w-5xl mx-auto w-full leading-snug">
-            <li>Две роли: Agentic Engineer <span className="text-dim">(оунит задачки)</span> и Agentic Operations <span className="text-dim">(оунит SDLC)</span></li>
+            <li>
+              Две роли
+              <ul className="slide-list-sm space-y-2 mt-3 text-2xl">
+                <li>Agentic Engineer <span className="text-dim">(оунит задачки)</span></li>
+                <li>Agentic Operations <span className="text-dim">(оунит SDLC)</span></li>
+              </ul>
+            </li>
             <li>Рост цены токенов</li>
             <li>ИИ-агенты вне разработки</li>
             <li>Найм/увольнение зависит от владения ИИ</li>
@@ -1193,13 +1271,12 @@
       // 49. Итоги: Что делать? Долгосрок
       () => (
         <Slide>
-          <H2>Итоги: Что делать?</H2>
-          <p className="font-display text-3xl text-muted mb-7 max-w-5xl mx-auto w-full">Долгосрок</p>
+          <H2>Итоги: Что делать? <span className="text-muted">Долгосрок</span></H2>
           <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] max-w-5xl mx-auto w-full leading-snug">
-            <li>Попробуйте стать "чемпионом внутри команды" (оунить SDLC)</li>
+            <li>Попробуйте стать "чемпионом внутри команды" <span className="text-dim">(оунить SDLC)</span></li>
             <li>Вкатываться сейчас, пока подписки ещё +- жирные</li>
             <li>Стараться вытачивать систему до one-shot</li>
-            <li>Автоанализ сессий на уровне команды (а-ля ретро)</li>
+            <li>Автоанализ сессий на уровне команды <span className="text-dim">(а-ля ретро)</span></li>
           </ul>
         </Slide>
       ),
@@ -1207,10 +1284,9 @@
       // 50. Итоги: Что делать? Короткосрок
       () => (
         <Slide>
-          <H2>Итоги: Что делать?</H2>
-          <p className="font-display text-3xl text-muted mb-7 max-w-5xl mx-auto w-full">Короткосрок</p>
+          <H2>Итоги: Что делать? <span className="text-muted">Короткосрок</span></H2>
           <ul className="slide-list space-y-5 font-body text-2xl text-[#111827] max-w-5xl mx-auto w-full leading-snug">
-            <li>Замкните Feedback Loop (статик анализ, тесты - unit/e2e, manual-e2e)</li>
+            <li>Замкните Feedback Loop <span className="text-dim">(статик анализ, тесты - unit/e2e, manual-e2e)</span></li>
             <li>Напишите скилл, который анализирует сессии за день</li>
             <li>Скачать wisprflow / handy <span className="text-dim">(или хоткей в codex)</span></li>
           </ul>
@@ -1231,39 +1307,41 @@
 
       // 52. Финал
       () => (
-        <Slide className="bg-black text-white" contentClassName="max-w-[1110px]" background={<SlideTemplateBackground src="./assets/template-end-back.svg" />}>
-          <div className="grid grid-cols-[minmax(0,760px)_270px] items-center justify-between gap-10">
+        <Slide className="bg-black text-white !px-28" contentClassName="max-w-[1120px]" background={<SlideTemplateBackground src="./assets/template-end-back.svg" />}>
+          <div className="relative w-full">
+            <h2 className="absolute -left-1.5 -top-28 font-display text-6xl font-800 tracking-tight leading-none">Вопросы</h2>
+            <div className="grid grid-cols-[minmax(0,1fr)_270px] items-center gap-20 w-full">
             <div className="flex flex-col gap-7 font-body text-xl text-white/86 leading-snug">
-              <div className="grid grid-cols-[104px_1fr] gap-5 items-baseline">
-                <p className="text-white/52">слайды:</p>
-                <a href="https://slides.grably.tech/agentic_dev_conf" target="_blank" rel="noopener noreferrer" className="font-mono text-lg leading-snug text-[#45a3ff] hover:text-white transition-colors">
+              <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-5 items-baseline">
+                <p className="text-left text-white/52">слайды:</p>
+                <a href="https://slides.grably.tech/agentic_dev_conf" target="_blank" rel="noopener noreferrer" className="font-mono text-lg leading-snug text-[#ff6b4a] hover:text-white transition-colors">
                   <span className="block">slides.grably.tech/</span>
                   <span className="block">agentic_dev_conf</span>
                 </a>
               </div>
-              <div className="grid grid-cols-[104px_1fr] gap-5 items-baseline">
-                <p className="text-white/52">канал:</p>
-                <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="font-mono text-[#45a3ff] hover:text-white transition-colors">@ai_grably</a>
-              </div>
-              <div className="grid grid-cols-[104px_1fr] gap-5 items-start">
-                <p className="text-white/52">видео:</p>
+              <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-5 items-start">
+                <p className="text-left text-white/52">видео:</p>
                 <ul className="space-y-4 text-white/86">
                   <li>
-                    <a href="https://www.youtube.com/watch?v=JvosMkuNxF8" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-[#45a3ff] underline decoration-[#45a3ff]/35 underline-offset-4 hover:text-white hover:decoration-white/55 transition-colors">
+                    <a href="https://www.youtube.com/watch?v=JvosMkuNxF8" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-[#ff6b4a] hover:text-white transition-colors">
                       Can you prove ROI in Software Eng <span className="text-white/48">(16 минут)</span>
                     </a>
                   </li>
                   <li>
-                    <a href="https://www.youtube.com/live/y2NnheH1-eU" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-[#45a3ff] underline decoration-[#45a3ff]/35 underline-offset-4 hover:text-white hover:decoration-white/55 transition-colors">
+                    <a href="https://www.youtube.com/live/y2NnheH1-eU" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-[#ff6b4a] hover:text-white transition-colors">
                       Куда двигается найм <span className="text-white/48">(1,5 часа)</span>
                     </a>
                   </li>
                   <li>
-                    <a href="https://www.youtube.com/watch?v=AW4gLWLrzcw" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-[#45a3ff] underline decoration-[#45a3ff]/35 underline-offset-4 hover:text-white hover:decoration-white/55 transition-colors">
+                    <a href="https://www.youtube.com/watch?v=AW4gLWLrzcw" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-[#ff6b4a] hover:text-white transition-colors">
                       Как не просрать карьеру в эпоху ИИ <span className="text-white/48">(18 минут)</span>
                     </a>
                   </li>
                 </ul>
+              </div>
+              <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-5 items-baseline">
+                <p className="text-left text-white/52">канал:</p>
+                <a href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer" className="font-mono text-[#ff6b4a] hover:text-white transition-colors">@ai_grably</a>
               </div>
             </div>
             <a href="https://t.me/agenticdevconf_bot?start=vote10954512" target="_blank" rel="noopener noreferrer" className="group justify-self-end flex flex-col items-center gap-4 rounded-3xl border border-white/15 bg-black/45 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.45)] backdrop-blur-sm">
@@ -1272,10 +1350,33 @@
               </div>
               <p className="font-body text-xl text-white/80 leading-snug text-center transition-colors group-hover:text-white">Проголосуйте за доклад</p>
             </a>
+            </div>
           </div>
         </Slide>
       ),
+
+      // 53. Appendix: Сдвиг парадигмы разработки
+      () => (
+        <Slide contentClassName="flex flex-col items-center text-center">
+          <h2 className="font-display text-4xl font-700 tracking-tight leading-tight mb-5">Сдвиг парадигмы разработки</h2>
+          <img
+            src="./assets/agent-paradigm-layers-comparison.png"
+            alt="Сравнение pipeline и agent-подхода"
+            className="w-full max-w-5xl max-h-[500px] object-contain rounded-xl border border-border bg-bg shadow-glow"
+          />
+          <a
+            href="https://slides.grably.tech/agent-paradigm-layers.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-block font-mono text-sm text-muted hover:text-accent transition-colors"
+          >
+            Подробнее
+          </a>
+        </Slide>
+      ),
     ];
+
+    const slidesWithPrintSolutionSteps = new Set([12, 13, 14, 25, 27, 28]);
 
     function getInitialSlide() {
       const p = new URLSearchParams(window.location.search);
@@ -1293,6 +1394,7 @@
       const [current, setCurrent] = useState(getInitialSlide);
       const [animKey, setAnimKey] = useState(0);
       const total = slides.length;
+      const officialTotal = total - 1;
 
       const revealNextSolution = useCallback(() => {
         const solution = document.querySelector('.slide-frame [data-solution-open="false"] button');
@@ -1367,6 +1469,15 @@
       }, []);
 
       const CurrentSlide = slides[current];
+      const printPages = slides.flatMap((S, i) => {
+        if (!slidesWithPrintSolutionSteps.has(i)) {
+          return [{ S, slideIndex: i, solutionMode: 'screen' }];
+        }
+        return [
+          { S, slideIndex: i, solutionMode: 'closed' },
+          { S, slideIndex: i, solutionMode: 'open' },
+        ];
+      });
 
       return (
         <>
@@ -1377,16 +1488,18 @@
               </div>
             </div>
             <ProgressBar current={current} total={total} />
-            <SlideChrome current={current} total={total} mode="screen" />
+            <SlideChrome current={current} total={officialTotal} mode="screen" />
           </div>
 
           <div className="print-only bg-bg">
-            {slides.map((S, i) => (
-              <div key={i} className="print-slide relative">
+            {printPages.map(({ S, slideIndex, solutionMode }, pageIndex) => (
+              <div key={`${slideIndex}-${solutionMode}`} className="print-slide relative">
                 <div className="print-slide-content">
-                  <S />
+                  <PrintSolutionContext.Provider value={solutionMode}>
+                    <S />
+                  </PrintSolutionContext.Provider>
                 </div>
-                <SlideChrome current={i} total={total} mode="print" />
+                <SlideChrome current={slideIndex} total={officialTotal} mode="print" />
               </div>
             ))}
           </div>
