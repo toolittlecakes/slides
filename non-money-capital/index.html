@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Неденежный капитал — почему на пенсии он важнее денег</title>
+<link href="./assets/fonts/fonts.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#ecebe6;
+  --ink:#0e0e0d;
+  --blue:#1c2ce5;
+  --blue2:#3445ff;
+  --line:1px solid #0e0e0d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;overflow:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ---------- screen stage ---------- */
+#stage{position:fixed;inset:0;background:var(--bg);overflow:hidden}
+#deck{
+  width:1280px;height:720px;
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(var(--slide-scale,1));
+  transform-origin:center center;
+  background:var(--bg);
+}
+.slide{
+  position:absolute;inset:0;width:1280px;height:720px;
+  padding:64px 72px;display:none;flex-direction:column;justify-content:center;
+  background:var(--bg);overflow:hidden;
+}
+.slide.active{display:flex}
+
+/* ---------- chrome ---------- */
+#hud{
+  position:fixed;right:20px;bottom:16px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;
+  color:var(--ink);opacity:.55;z-index:50;user-select:none;
+}
+#progress{position:fixed;left:0;bottom:0;height:3px;background:var(--blue);width:0;z-index:50;transition:width .25s ease}
+#swipe-hint{display:none}
+@media screen and (hover:none) and (pointer:coarse){
+  #swipe-hint{
+    position:fixed;left:50%;bottom:max(34px,calc(env(safe-area-inset-bottom) + 22px));
+    z-index:70;align-items:center;gap:16px;min-width:234px;padding:12px 16px;
+    transform:translateX(-50%);border:2px solid var(--ink);background:var(--ink);color:#fff;
+    box-shadow:5px 5px 0 var(--blue);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+    letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;pointer-events:none;user-select:none;opacity:0;
+  }
+  #swipe-hint.play{display:flex;animation:swipe-hint-shell 1.55s ease-out forwards}
+  .swipe-hint-track{position:relative;width:70px;height:18px}
+  .swipe-hint-dot{position:absolute;right:0;top:4px;width:10px;height:10px;border-radius:50%;background:var(--blue2);box-shadow:0 0 0 2px #fff}
+  #swipe-hint.play .swipe-hint-dot{animation:swipe-hint-dot 1.55s cubic-bezier(.4,0,.2,1) forwards}
+}
+@keyframes swipe-hint-shell{0%,100%{opacity:0}12%,78%{opacity:1}}
+@keyframes swipe-hint-dot{0%,18%{transform:translateX(0);opacity:0}26%{opacity:1}72%,100%{transform:translateX(-56px);opacity:1}}
+
+/* ---------- speaker notes (N) ---------- */
+.notes{display:none}
+#notes-panel{
+  position:fixed;left:16px;right:16px;bottom:16px;z-index:60;display:none;
+  border:2px solid var(--ink);background:var(--bg);color:var(--ink);
+  padding:16px 20px;box-shadow:6px 6px 0 var(--blue);
+  font-size:16px;line-height:1.4;font-weight:500;max-height:34vh;overflow:auto;
+}
+#notes-panel.open{display:block}
+#notes-panel .lbl{
+  display:block;margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:11px;
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);
+}
+
+/* ---------- shared pieces ---------- */
+.kicker{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;
+  display:flex;align-items:center;gap:14px;margin-bottom:28px;
+}
+.kicker .num{color:var(--blue)}
+.kicker .rule{flex:1;border-top:var(--line);opacity:.35}
+h1{font-size:76px;line-height:1.02;font-weight:800;letter-spacing:-0.03em}
+h2{font-size:52px;line-height:1.05;font-weight:800;letter-spacing:-0.025em}
+.sub{font-size:24px;line-height:1.4;font-weight:500;max-width:900px}
+.accent{color:var(--blue)}
+.tag{
+  display:inline-block;background:var(--ink);color:var(--bg);padding:6px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+}
+.tag.blue{background:var(--blue);color:#fff}
+.card{border:var(--line);background:var(--bg);padding:22px 24px}
+.card.shadow{box-shadow:6px 6px 0 var(--ink)}
+.card.shadow-blue{box-shadow:6px 6px 0 var(--blue)}
+ul.list{list-style:none;display:flex;flex-direction:column;gap:14px}
+ul.list li{font-size:22px;line-height:1.35;font-weight:500;padding-left:28px;position:relative}
+ul.list li::before{content:"—";position:absolute;left:0;color:var(--blue);font-weight:700}
+ul.list.nogo li::before{content:"✕";color:var(--blue)}
+.history-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+  margin-top:34px;border:var(--line);background:var(--bg);box-shadow:7px 7px 0 var(--ink);
+}
+.history-year{min-height:350px;padding:24px 22px;border-right:var(--line);display:flex;flex-direction:column}
+.history-year:last-child{border-right:0}
+.history-year.current{background:var(--blue);color:#fff}
+.history-year .year{font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.08em;color:var(--blue);margin-bottom:22px}
+.history-year.current .year{color:#fff}
+.history-year h3{font-size:23px;line-height:1.1;letter-spacing:-.025em;margin-bottom:20px}
+.history-year ul{list-style:none;display:flex;flex-direction:column;gap:14px}
+.history-year li{font-size:17px;line-height:1.3;padding-top:13px;border-top:1px solid currentColor}
+.cols{display:flex;gap:36px}
+.col{flex:1;min-width:0}
+
+/* ---------- speaker ---------- */
+.speaker{display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:center}
+.speaker-side{display:flex;flex-direction:column;gap:22px}
+.speaker-photo{height:400px;border:var(--line);box-shadow:7px 7px 0 var(--blue);overflow:hidden}
+.speaker-photo img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block}
+.tg-card{
+  display:flex;align-items:center;gap:14px;padding:12px 14px;
+  border:var(--line);background:var(--bg);color:var(--ink);text-decoration:none;
+  box-shadow:6px 6px 0 var(--ink);
+}
+.tg-ava{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;border:var(--line)}
+.tg-text{display:flex;flex-direction:column;min-width:0;gap:3px}
+.tg-name{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.tg-handle{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue);letter-spacing:.02em}
+.tg-icon{margin-left:auto;width:36px;height:36px;flex:none;background:var(--blue);display:flex;align-items:center;justify-content:center}
+
+.reveal{margin-top:36px}
+.spoiler{
+  display:inline-flex;align-items:center;gap:16px;border:var(--line);background:var(--ink);color:var(--bg);
+  padding:12px 20px;font:700 22px/1.2 'Inter',sans-serif;cursor:pointer;box-shadow:6px 6px 0 var(--blue);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.spoiler:hover,.spoiler:focus-visible{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--blue);outline:0}
+.spoiler-hint{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7580ff}
+.reveal.open .spoiler{background:var(--bg);color:var(--ink);border:0;padding:0 0 4px;box-shadow:none;cursor:default;transform:none}
+.reveal.open .spoiler-hint{display:none}
+.reveal .qlist{display:none}
+.reveal.open .qlist{display:flex}
+.qlist{list-style:none;counter-reset:q;display:flex;flex-direction:column;gap:14px;margin-top:18px}
+.qlist li{counter-increment:q;font-size:22px;line-height:1.35;font-weight:500;padding-left:44px;position:relative}
+.qlist li::before{content:counter(q,decimal-leading-zero);position:absolute;left:0;top:3px;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--blue)}
+
+/* ---------- title ---------- */
+.s-title{justify-content:center}
+.s-title .brand{
+  font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.18em;text-transform:uppercase;
+  display:flex;align-items:center;gap:16px;margin-bottom:44px;
+}
+.s-title .brand .dot{width:10px;height:10px;background:var(--blue)}
+.s-title h1{font-size:84px;max-width:1100px}
+.s-title .sub{margin-top:28px;font-size:26px}
+.s-title .roles{margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;letter-spacing:.02em}
+.s-title .plate{
+  margin-top:36px;font-size:24px;align-self:flex-start;background:var(--blue);color:#fff;
+  padding:14px 22px;font-size:20px;font-weight:600;box-shadow:6px 6px 0 var(--ink);
+}
+
+/* ---------- cloud ---------- */
+.cloud{display:flex;flex-wrap:wrap;gap:16px;margin-top:30px;max-width:1000px}
+.cloud span{border:var(--line);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-weight:500}
+.cloud span.big{font-size:30px}
+.cloud span.mid{font-size:23px}
+.cloud span.inv{background:var(--ink);color:var(--bg)}
+.cloud span.blu{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ---------- chain ---------- */
+.chain{display:flex;align-items:stretch;gap:0;margin-top:44px}
+.chain .card{flex:1;display:flex;flex-direction:column;gap:10px;justify-content:flex-start}
+.chain .card .cn{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);font-weight:700}
+.chain .card .ct{font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.015em}
+.chain .card .cd{font-size:17px;line-height:1.35;font-weight:500}
+.chain .arr{display:flex;align-items:center;padding:0 18px;font-size:30px;color:var(--blue);font-weight:700;font-family:'JetBrains Mono',monospace}
+.bigquote{
+  margin-top:32px;border-left:5px solid var(--blue);padding:8px 0 8px 26px;
+  font-size:28px;font-weight:700;line-height:1.3;max-width:1000px;letter-spacing:-0.01em;
+}
+
+/* ---------- lesson grid ---------- */
+.lesson-grid{margin-top:22px;border:var(--line);box-shadow:6px 6px 0 var(--blue)}
+.lesson-head,.lesson-row{display:grid;grid-template-columns:1fr 48px 1fr;align-items:center}
+.lesson-head{padding:10px 20px;background:var(--ink);color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.lesson-row{padding:13px 20px;border-top:1px solid rgba(14,14,13,.25)}
+.lesson-bad,.lesson-good{font-size:19px;font-weight:750;line-height:1.2}
+.lesson-arrow{text-align:center;color:var(--blue);font-size:22px;font-weight:800}
+.lesson-proof{margin-top:20px;padding:14px 20px;background:var(--ink);color:#fff;font-size:18px;font-weight:650;line-height:1.35}
+.lesson-proof .tag{margin-right:14px;vertical-align:2px}
+
+/* ---------- figure ---------- */
+.figure{margin-top:6px;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.figure img{max-width:100%;max-height:100%;display:block;border:var(--line);box-shadow:7px 7px 0 var(--blue)}
+
+/* ---------- print ---------- */
+#print-root{display:none}
+@media print{
+  #stage,#hud,#progress,#swipe-hint,#notes-panel{display:none !important}
+  body{overflow:visible;background:var(--bg)}
+  #print-root{display:block}
+  .print-page{width:16in;height:9in;overflow:hidden;page-break-after:always;break-after:page;background:var(--bg);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .print-page .qlist{display:flex !important}
+  .print-page .spoiler-hint{display:none}
+  .print-page .spoiler{background:var(--bg);color:var(--ink);border:0;padding:0 0 4px;box-shadow:none}
+  .print-page .slide{display:flex !important;position:relative;transform:scale(1.2);transform-origin:top left}
+}
+@page{size:16in 9in;margin:0}
+</style>
+</head>
+<body>
+<div id="stage"><div id="deck">
+
+<!-- 0. Спикер -->
+<section class="slide">
+  <div class="speaker">
+    <div>
+      <h2>Николай Шейко</h2>
+      <p class="sub" style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--blue)">фаундер grably.tech и entropy.talk</p>
+      <ul class="list nogo" style="margin-top:44px;gap:22px">
+        <li>не только для предпринимателей</li>
+        <li>не только про пенсию</li>
+        <li>не только про бабки</li>
+      </ul>
+    </div>
+    <div class="speaker-side">
+      <div class="speaker-photo"><img src="./assets/nikolay.jpg" alt="Николай Шейко"></div>
+      <a class="tg-card" href="https://t.me/ai_grably" target="_blank" rel="noopener noreferrer">
+        <img class="tg-ava" src="./assets/tg-avatar.jpg" alt="">
+        <span class="tg-text"><span class="tg-name">AI и грабли</span><span class="tg-handle">t.me/ai_grably</span></span>
+        <span class="tg-icon"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#fff" d="M9.04 15.47 8.7 20.3c.49 0 .7-.21.95-.46l2.28-2.18 4.72 3.46c.86.48 1.47.23 1.7-.8l3.08-14.45v-.01c.29-1.29-.47-1.8-1.3-1.5L1.96 9.02c-1.25.49-1.23 1.19-.22 1.5l4.71 1.47L17.4 5.2c.52-.34 1-.15.6.2L9.04 15.47Z"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 1. Титул -->
+<section class="slide s-title">
+  <h1>Неденежный капитал: почему на пенсии он важнее денег</h1>
+  <div class="plate">«Сотни незаписанных интервью»</div>
+  <aside class="notes">Тут я говорю про то, что в юности много путешествовал автостопом по РФ, Европе, Африке, Латинской Америке и Азии. Видел очень разных людей и смог пообщаться и сформировать какую-то картину старости и того, что там важно.</aside>
+</section>
+
+<!-- 3. Капитал ≠ деньги -->
+<section class="slide">
+  <h2>Капитал <span class="accent">≠</span> деньги</h2>
+  <div class="cols" style="margin-top:40px">
+    <div class="col card shadow">
+      <span class="tag">В 30</span>
+      <p style="font-size:24px;font-weight:700;line-height:1.35;margin-top:18px">Деньги легко меняются на время, здоровье, обучение, связи</p>
+    </div>
+    <div class="col card shadow-blue">
+      <span class="tag blue">В 70</span>
+      <p style="font-size:24px;font-weight:700;line-height:1.35;margin-top:18px">Деньги почти не покупают здоровье, друзей, уважение, смысл</p>
+    </div>
+  </div>
+  <p class="bigquote">Здоровье и связи — неликвид: нельзя купить срочно, только накопить заранее.</p>
+</section>
+
+<!-- 4. Здоровье -->
+<section class="slide">
+  <h2>Здоровье: <span class="accent">healthspan</span>, не lifespan</h2>
+  <ul class="list" style="margin-top:44px;gap:22px">
+    <li>«Мочь то, что хочешь» вместо «жить дольше»</li>
+    <li>Сила, мышечная масса, VO2max предсказывают смертность лучше большинства анализов</li>
+    <li>Дёшево сейчас, недоступно потом: слух, зубы, зрение, сон</li>
+  </ul>
+</section>
+
+<!-- 5. Мозг -->
+<section class="slide">
+  <h2>Мозг: fluid падает, <span class="accent">crystallized растёт</span></h2>
+  <div class="lesson-grid">
+    <div class="lesson-head"><span>Fluid intelligence</span><span></span><span>Crystallized intelligence</span></div>
+    <div class="lesson-row"><span class="lesson-bad">Скорость, новые задачи</span><span class="lesson-arrow">→</span><span class="lesson-good">Синтез, суждение, паттерны</span></div>
+    <div class="lesson-row"><span class="lesson-bad">Снижается с ~30</span><span class="lesson-arrow">→</span><span class="lesson-good">Растёт до 60–70</span></div>
+    <div class="lesson-row"><span class="lesson-bad">На этом построена первая половина карьеры</span><span class="lesson-arrow">→</span><span class="lesson-good">На этом должна ехать вторая</span></div>
+  </div>
+  <p class="lesson-proof"><span class="tag blue">Резерв</span>Когнитивный резерв: языки, музыка, сложные хобби с сообществом.</p>
+  <aside class="notes">Arthur Brooks, «From Strength to Strength». Это научная база под всё, что дальше про оракула: старение — не деградация, а смена типа интеллекта. Проблема в том, что карьеры построены на fluid, и люди пытаются на нём же ехать в 55, проигрывают тридцатилетним и ломаются. Надо вовремя пересесть.</aside>
+</section>
+
+<!-- 7. График -->
+<section class="slide">
+  <div class="figure">
+    <img src="./assets/mortality.png" alt="Социальные связи снижают смертность не слабее, чем отказ от курения. Holt-Lunstad 2010">
+  </div>
+  <aside class="notes">Holt-Lunstad 2010, PLoS Medicine: 148 исследований, 308 849 человек. Крепкие связи дают +50% к шансам дожить до конца наблюдения в среднем, до +91% при комплексной оценке. Курение <15 сигарет — +70%. Отсюда фраза Surgeon General про «одиночество как 15 сигарет в день». Оговорка: это сравнение размеров эффекта, не клинический эквивалент.</aside>
+</section>
+
+<!-- 6. Социальные связи -->
+<section class="slide">
+  <h2>Социальные связи: <span class="accent">три слоя</span></h2>
+  <div class="chain">
+    <div class="card shadow"><span class="cn">Сильные</span><span class="ct">Кто приедет в 3 ночи</span><span class="cd">У кого ключи от квартиры, кто emergency contact</span></div>
+    <div class="arr">+</div>
+    <div class="card shadow"><span class="cn">Слабые</span><span class="ct">Откуда приходят проекты</span><span class="cd">Работа и интересные задачи приносят полузнакомые, не друзья</span></div>
+    <div class="arr">+</div>
+    <div class="card shadow-blue"><span class="cn">Третье место</span><span class="ct">Где тебя ждут по умолчанию</span><span class="cd">Не дом и не работа</span></div>
+  </div>
+  <p class="bigquote">Проверка: назовите пять человек, которые приедут в три ночи.</p>
+  <aside class="notes">Разложить на слои, потому что люди путают «много знакомых» с «есть кому позвонить». Проверочный вопрос в зал: назовите 5 человек, которые приедут в 3 ночи. Слабые связи — отдельный тезис: интересные проекты в старости приходят не от друзей, а от полузнакомых. Моаи — пример, что в Blue Zones это институт, а не случайность, у нас его надо строить руками.</aside>
+</section>
+
+<!-- 8. Связи протухают -->
+<section class="slide">
+  <h2>Связи <span class="accent">протухают</span></h2>
+  <ul class="list" style="margin-top:44px;gap:22px">
+    <li>Дружба деградирует без контакта за несколько месяцев (Данбар)</li>
+    <li>Годовое письмо ученикам и бывшим подчинённым, office hours для бывших студентов</li>
+    <li>Совместные дела сближают сильнее всего: горы, фестивали, хакатоны, путешествия, коливинг</li>
+  </ul>
+  <aside class="notes">Личная история: мои студенты, для которых я был наставником и которые меня любили, я с ними почти не общаюсь. Это потерянный актив, причём потеря незаметная, как инфляция. Упор на механику: связи не поддерживаются намерением, только календарём. Лучший формат контакта — совместное дело, не переписка.</aside>
+</section>
+
+<!-- 9. Межпоколенческие инвестиции -->
+<section class="slide">
+  <h2>Межпоколенческие <span class="accent">инвестиции</span></h2>
+  <ul class="list" style="margin-top:44px;gap:22px">
+    <li>Дети — не единственный «младший» актив. Ученики, джуны, менторство</li>
+    <li>Reverse mentoring: они учат стеку, ты — суждению. Прокачивает judgement обоим</li>
+    <li>Не ожидать возврата, но не терять контакт</li>
+  </ul>
+  <aside class="notes">Эриксон: стадия generativity vs stagnation, забота о следующем поколении как источник смысла в поздней жизни. Ученики — генеративность вне семьи, тот же психологический механизм. Adam Grant, «Give and Take»: giver'ы с границами выигрывают на длинной дистанции. Честно сказать: поддержка от учеников будет меньше, чем от детей, но она есть и она через проекты, а не через деньги. И это единственный капитал, который растёт сам, пока ты спишь, если его не бросать.</aside>
+</section>
+
+<!-- 10. Предел некомпетентности -->
+<section class="slide">
+  <h2>Предел <span class="accent">«некомпетентности»</span></h2>
+  <ul class="list" style="margin-top:36px;gap:18px">
+    <li>Сложность задачи, которую решит организация, ограничена компетентностью лучшего сотрудника</li>
+    <li>Сто мидлов не решают задачу одного сеньора</li>
+    <li>Старых держат не за работу, а чтобы они объяснили, как решать</li>
+  </ul>
+  <p class="bigquote">Делает молодёжь. Но без «деда» задача не решилась бы вовсе.</p>
+</section>
+
+<!-- 11. Планки -->
+<section class="slide">
+  <h2>High-water mark <span class="accent">остаётся навсегда</span></h2>
+  <ul class="list" style="margin-top:36px;gap:18px">
+    <li>Управлял $1M, 200 людьми, продуктом на миллион юзеров — это необратимо</li>
+    <li>Рынок смотрит на максимум, не на среднее и не на текущее</li>
+    <li>Планки не суммируются: один раз до 200 лучше, чем десять раз до 20</li>
+    <li>Новая планка открывает новый горизонт мышления</li>
+  </ul>
+  <aside class="notes">Термин из финансов буквально: high-water mark. Факт достижения доказывает две вещи: умеешь и тебя туда пустили. Второе иногда важнее: кто-то уже принял на тебя риск, следующему легче. Ловушки: планка должна быть проверяемой, фальшивая хуже отсутствующей; спуск после пика нормален, лычка остаётся. Связь с оракулом: к тебе приходят спрашивать именно потому, что «он это уже делал на масштабе».</aside>
+</section>
+
+<!-- 12. Репутация -->
+<section class="slide">
+  <h2>Репутация конвертируется в деньги.<br><span class="accent">А обратно?</span></h2>
+  <p class="bigquote" style="margin-top:24px;font-size:26px">капитал = деньги × компетенция × ресурсы <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;color:var(--blue);margin-left:12px">© Миша Токовинин</span></p>
+  <ul class="list" style="margin-top:26px;gap:14px">
+    <li>Деньги легко получить, если есть репутация: компетенция + предсказуемость + этический компас</li>
+    <li>Строится годами, легко теряется</li>
+    <li>Единственная репутация, нужная с первого дня: «делает, что обещал»</li>
+  </ul>
+  <p style="margin-top:22px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);font-weight:700">Плюс лычки</p>
+  <div class="cloud" style="margin-top:12px">
+    <span class="mid inv">личный бренд</span><span class="mid">публикации</span><span class="mid blu">awards</span><span class="mid">соцсети</span><span class="mid inv">сообщества</span>
+  </div>
+</section>
+
+<!-- 13. Иногда репутация — плохо -->
+<section class="slide">
+  <h2>Иногда репутация — <span class="accent">это плохо</span></h2>
+  <ul class="list nogo" style="margin-top:36px;gap:18px">
+    <li>Репутация ограничивает: сложно публично косячить</li>
+    <li>А делать плохо — критический навык: стартап, бизнес, новая область</li>
+    <li>Поиск решается перебором вариантов. Вылизывать каждый = перебрать мало</li>
+  </ul>
+  <p class="bigquote">«Никто и звать никак» — привилегия. Её отнимут.</p>
+  <aside class="notes">Контринтуитивный тейк, зал проснётся. Стартап — это не поиск качественного решения, а поиск правильной задачи; качество на этапе поиска тратит ограниченный ресурс попыток. Как не быть заложником образа: раздельные идентичности (серьёзное имя и песочница без имени), явно объявленные эксперименты («это прототип, будет плохо»), или строить репутацию «человека, который быстро пробует», она защищает сама. Уточнить: не строить рано стоит репутацию эксперта и перфекциониста, а не репутацию «делает, что обещал».</aside>
+</section>
+
+<!-- 14. Собираем в кучку -->
+<section class="slide">
+  <h2>Одна ось времени</h2>
+  <div class="history-grid">
+    <div class="history-year">
+      <span class="year">Молодость</span>
+      <h3>Быть никем</h3>
+      <ul><li>Делать плохо, пробовать</li><li>Собирать опыт</li><li>Разбираться, что нравится делать</li><li>Учиться строить отношения</li></ul>
+    </div>
+    <div class="history-year">
+      <span class="year">Середина</span>
+      <h3>Пробивать планки</h3>
+      <ul><li>Пока есть fluid intelligence</li><li>Пока дают шанс</li><li>Выбирать проекты по потолку</li></ul>
+    </div>
+    <div class="history-year current">
+      <span class="year">Поздно</span>
+      <h3>Жить на накопленном</h3>
+      <ul><li>Репутация</li><li>Планки</li><li>Ученики</li><li>Деньги либо уже есть, либо приходят через первые три</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- 15. Своевременность -->
+<section class="slide">
+  <h2 style="font-size:64px">Своевременность</h2>
+  <p class="bigquote" style="font-size:30px;margin-top:28px">Всему в жизни есть свой слот. Пропущенный слот деньгами не выкупается.</p>
+  <div class="reveal">
+    <button class="spoiler" type="button" aria-expanded="false">Что сейчас своевременно сделать для: <span class="spoiler-hint">нажмите</span></button>
+    <ol class="qlist">
+      <li>Построения, поддержания, восстановления близкого круга?</li>
+      <li>Получения уникального опыта и компетенций?</li>
+      <li>Формирования репутации?</li>
+    </ol>
+  </div>
+</section>
+
+</div></div>
+<div id="hud"><span id="counter">1 / 15</span></div>
+<div id="progress"></div>
+<div id="swipe-hint" aria-hidden="true">
+  <span>Свайп влево</span>
+  <span class="swipe-hint-track"><span class="swipe-hint-dot"></span></span>
+</div>
+<div id="notes-panel" aria-hidden="true"><span class="lbl">Заметки · N</span><div id="notes-text"></div></div>
+<div id="print-root"></div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('#deck > .slide'));
+  var total = slides.length;
+  var current = 0;
+  var swipeHint = document.getElementById('swipe-hint');
+  var swipeHintTimer = 0;
+  var notesPanel = document.getElementById('notes-panel');
+  var notesText = document.getElementById('notes-text');
+
+  function parseHash(){
+    var m = location.hash.match(/slide=(\d+)/);
+    if(m){
+      var n = parseInt(m[1],10);
+      if(n>=1 && n<=total) return n-1;
+    }
+    return 0;
+  }
+
+  function renderNotes(){
+    var n = slides[current].querySelector('.notes');
+    notesText.textContent = n ? n.textContent.trim() : 'Заметок нет.';
+  }
+
+  function show(i){
+    current = Math.max(0, Math.min(total-1, i));
+    slides.forEach(function(s,idx){ s.classList.toggle('active', idx===current); });
+    document.getElementById('counter').textContent = (current+1)+' / '+total;
+    document.getElementById('progress').style.width = ((current+1)/total*100)+'%';
+    if(location.hash !== '#slide='+(current+1)){
+      history.replaceState(null,'','#slide='+(current+1));
+    }
+    renderNotes();
+  }
+
+  function fit(){
+    var scale = Math.min(window.innerWidth/1280, window.innerHeight/720);
+    document.documentElement.style.setProperty('--slide-scale',scale);
+  }
+
+  var touchStartX = 0;
+  function onTouchStart(e){ touchStartX = e.touches[0].clientX; }
+  function onTouchEnd(e){
+    var diff = touchStartX - e.changedTouches[0].clientX;
+    if(Math.abs(diff)>60) show(current+(diff>0?1:-1));
+  }
+  window.addEventListener('touchstart',onTouchStart,{passive:true});
+  window.addEventListener('touchend',onTouchEnd,{passive:true});
+
+  document.getElementById('stage').addEventListener('click',function(e){
+    if(current!==0 || !window.matchMedia('(hover:none) and (pointer:coarse)').matches) return;
+    if(e.target.closest('a,button,input,textarea,select,[role="button"]')) return;
+    window.clearTimeout(swipeHintTimer);
+    swipeHint.classList.remove('play');
+    void swipeHint.offsetWidth;
+    swipeHint.classList.add('play');
+    swipeHint.setAttribute('aria-hidden','false');
+    swipeHintTimer = window.setTimeout(function(){
+      swipeHint.classList.remove('play');
+      swipeHint.setAttribute('aria-hidden','true');
+    },1600);
+  });
+
+  Array.prototype.slice.call(document.querySelectorAll('#deck .spoiler')).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var box = btn.parentNode;
+      var open = box.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    btn.addEventListener('keydown', function(e){ e.stopPropagation(); });
+  });
+
+  document.addEventListener('keydown', function(e){
+    switch(e.key){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); show(current+1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); show(current-1); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End': e.preventDefault(); show(total-1); break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault();
+        notesPanel.classList.toggle('open');
+        notesPanel.setAttribute('aria-hidden', notesPanel.classList.contains('open') ? 'false' : 'true');
+        break;
+    }
+  });
+  window.addEventListener('hashchange', function(){ show(parseHash()); });
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+
+  var printRoot = document.getElementById('print-root');
+  slides.forEach(function(s){
+    var page = document.createElement('div');
+    page.className = 'print-page';
+    var clone = s.cloneNode(true);
+    clone.classList.remove('active');
+    page.appendChild(clone);
+    printRoot.appendChild(page);
+  });
+
+  ['400','500','600','700','800','900'].forEach(function(w){ document.fonts.load(w+" 16px Inter", "Яя Aa"); });
+  ['400','500','700'].forEach(function(w){ document.fonts.load(w+" 16px 'JetBrains Mono'", "Яя Aa"); });
+
+  fit();
+  show(parseHash());
+})();
+</script>
+</body>
+</html>
