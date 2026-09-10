@@ -91,7 +91,7 @@
 
 ---
 
-# Мой AGENTS.md:
+# AGENTS.md от [@ai_grably](https://t.me/ai_grably)
 
 ```
 ## Коммуникация
