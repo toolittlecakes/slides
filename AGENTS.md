@@ -32,3 +32,24 @@ When regenerating `index.html` from `index.md` (via agent/tool):
 3. Review the diff and manually adjust as needed.
 
 Rule: regeneration may overwrite `index.html`, but **Git is the safety net** and diff review is mandatory.
+
+## Visual check of a deck
+
+Use playwriter with its own headless Chrome (never the user's Chrome, never a raw `Google Chrome --headless` binary: it hangs on Crashpad/profile locks under the sandbox).
+
+```bash
+playwriter session new --browser headless   # then find the "Chrome (Headless)" id via `playwriter session list`
+playwriter -s <id> --timeout 60000 -e "$(cat <<'JS'
+state.page = await context.newPage();
+await state.page.setViewportSize({ width: 1280, height: 720 });
+for (const n of [1, 2]) {
+  await state.page.goto('file:///ABS/PATH/<slug>/index.html#slide=' + n);
+  await state.page.reload();
+  await state.page.evaluate(() => document.fonts.ready);
+  await state.page.screenshot({ path: '/ABS/PATH/.tmp/<slug>-' + n + '.png', scale: 'css' });
+}
+JS
+)"
+```
+
+Screenshots go to `.tmp/` (untracked). Run outside the sandbox if the relay on loopback is blocked.
