@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Что такое bb: два уровня агентной работы</title>
+<meta name="description" content="Codex, Claude и bb: рабочие среды, агентные движки и то, как оболочка добавляет инструменты, инструкции и skills.">
+<link rel="icon" href="data:,">
+<style>
+:root{color-scheme:dark;background:#0e121a;color:#e0e5ec}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{width:100%;max-width:2100px;margin:auto}
+svg{display:block;width:100%;height:auto}
+text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-anchor:middle}
+.heading{fill:#e0e5ec;font-size:30px;font-weight:550;letter-spacing:-.5px}
+.label{fill:#93a1b4;font-size:16px}
+.family{fill:#b4c0cf;font-size:19px;font-weight:500}
+.client{fill:#17292d;stroke:#577d7f;stroke-width:1.5}
+.engine{fill:#29231b;stroke:#927345;stroke-width:1.5}
+.client-name{fill:#d2e7e4;font-size:22px;font-weight:500}
+.engine-name{fill:#f0d1a3;font-size:23px;font-weight:500}
+.sub{fill:#b4a58e;font-size:16px}
+.client-sub{fill:#9ebeba;font-size:14px}
+.link{fill:none;stroke:#7f92a6;stroke-width:1.7;marker-end:url(#arrow)}
+.callback{fill:none;stroke:#9ebeba;stroke-width:1.7;stroke-dasharray:5 6;marker-end:url(#callback-arrow)}
+.ref{fill:#f0d1a3;font-weight:600}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+html{scroll-behavior:auto}
+.mobile-scenes{display:none}
+a{color:inherit}
+a:focus-visible{outline:2px solid #f0d1a3;outline-offset:4px}
+.details{margin:0 2.86%;padding:28px 0 22px;border-top:1px solid #2a3442}
+h2,h3,h4,p{margin:0}
+.details h2{font-size:clamp(23px,1.57vw,33px);font-weight:550;letter-spacing:-.4px}
+.detail-grid{--gap:clamp(18px,1.67vw,35px);position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap);margin-top:48px}
+.detail-grid:before{content:"";position:absolute;left:calc((100% - 2 * var(--gap))/6);right:calc((100% - 2 * var(--gap))/6);top:-24px;height:24px;border-top:1px solid #3c4a59;border-left:1px solid #3c4a59;border-right:1px solid #3c4a59}
+.detail-grid:after{content:"";position:absolute;left:50%;top:-38px;height:38px;border-left:1px solid #3c4a59}
+.detail-card{position:relative;min-width:0;display:grid;grid-template-rows:auto 1fr 1fr;padding:24px 28px 12px;background:#121a24;border:1px solid #2b3949;border-radius:10px}
+.detail-card:before{content:"";position:absolute;left:24px;right:24px;top:0;border-top:2px solid var(--accent)}
+.detail-card h3{font-size:clamp(21px,1.25vw,26px);color:#d2e7e4;font-weight:550}
+.card-sub{font-size:clamp(12px,.9vw,18px);line-height:1.5;color:#93a1b4;margin-top:10px}
+.card-owner{font-size:clamp(15px,.95vw,20px);font-weight:550;color:#b9c8d6;margin-bottom:16px}
+.ref{color:#f0d1a3}
+.card-examples{border-top:1px solid #2b3949;margin-top:16px;padding-top:16px;font-size:clamp(14px,1vw,21px);line-height:1.45;color:#b5c2d0}
+.card-examples p+p,.card-examples li+li{margin-top:14px}
+.card-examples ul{list-style:none;padding:0;margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.94em;color:#d2e7e4;overflow-wrap:anywhere}
+.card-examples li code{display:block;margin-bottom:3px}
+.example{padding:12px 16px;border-radius:5px;background:#1c2530}
+.notes{color:#93a1b4;font-size:clamp(12px,.9vw,18px);line-height:1.5;margin-top:24px}
+.notes p+p{margin-top:8px}
+.mobile-scene h2{font-size:25px;letter-spacing:-.5px;font-weight:550}
+.scene-kicker{font-size:13px;color:#93a1b4;margin-top:10px;line-height:1.5}
+.scene-foot{color:#b5c2d0;font-size:13px;line-height:1.55;text-align:center}
+.m-client{fill:#17292d;stroke:#577d7f;stroke-width:1}
+.m-engine{fill:#29231b;stroke:#927345;stroke-width:1}
+.mobile-scenes svg text{font-size:14px;fill:#d2e7e4}
+.mobile-scenes svg .m-sub{font-size:12px;fill:#9ebeba}
+.mobile-scenes svg .m-engine-text{fill:#f0d1a3;font-size:16px}
+.mobile-scenes svg .m-api{fill:#b4a58e;font-size:13px}
+.m-link{fill:none;stroke:#7f92a6;stroke-width:1.3;marker-end:url(#mobile-arrow)}
+.m-callback{fill:none;stroke:#9ebeba;stroke-width:1.3;stroke-dasharray:4 5;marker-end:url(#mobile-back)}
+.bb-client{margin-top:24px;padding:18px 12px;border:1px solid #577d7f;border-radius:8px;background:#17292d;text-align:center;color:#d2e7e4}
+.bb-client strong{display:block;font-size:32px;font-weight:550;margin-bottom:7px}
+.bb-client p{font-size:13px;line-height:1.65;color:#c0d6d3}
+.bb-wires{height:106px}
+.engine-group{padding:16px;border:1px solid #514635;border-radius:10px}
+.engine-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.engine-node{padding:16px 5px;min-height:78px;display:flex;flex-direction:column;justify-content:center;border:1px solid #927345;border-radius:6px;background:#29231b;text-align:center;color:#f0d1a3;font-size:16px}
+.engine-node small{font-size:12px;color:#b4a58e;margin-top:6px}
+.engine-group>p{font-size:12px;text-align:center;margin-top:16px;color:#b4a58e}
+.mobile-scene+.mobile-scene{border-top:1px solid #2a3442;margin-top:28px;padding-top:28px}
+.arrow-legend{display:flex;justify-content:center;gap:24px 64px;margin:16px 2.86% 28px}
+.legend-item{display:flex;align-items:center;gap:12px;color:#93a1b4}
+.legend-item.reverse{color:#9ebeba}
+.legend-symbol{width:18px;height:38px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.legend-item strong{display:block;font-size:14px;font-weight:500;color:#c0cbd8}
+.legend-item small{display:block;font-size:13px;line-height:1.4;margin-top:4px}
+@media(max-width:1100px){
+.desktop-diagram{display:none}
+.mobile-scenes{display:block;max-width:600px;margin:0 auto;padding:24px 16px}
+.details{max-width:600px;margin:0 auto;padding:26px 16px 22px}
+.detail-grid{grid-template-columns:1fr;gap:20px;margin-top:24px}
+.detail-grid:before,.detail-grid:after{display:none}
+.detail-card{grid-template-rows:auto auto auto;padding:22px 20px 20px}
+.details h2{font-size:24px;line-height:1.25}
+.card-sub{font-size:13px}.card-owner{font-size:15px}
+.card-examples{font-size:15px}
+.notes{font-size:12px}
+.arrow-legend{flex-direction:column;gap:16px;max-width:600px;margin:0 auto;padding:0 16px 26px}
+}
+@media print{.desktop-diagram{display:block}.mobile-scenes{display:none}.detail-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<main>
+<svg xmlns="http://www.w3.org/2000/svg" class="desktop-diagram" viewBox="0 0 1920 760" role="img" aria-labelledby="title desc">
+<title id="title">Отдельные экосистемы Codex и Claude и общая рабочая среда bb</title>
+<desc id="desc">Слева два независимых семейства: Codex CLI, Desktop и расширение VS Code подключаются к Codex App Server; агентный режим Claude Desktop показан над Claude Code с программным доступом через Agent SDK. Справа bb объединяет Codex, Claude Code, Pi и OpenCode. Сплошные стрелки вниз обозначают подключение и передачу контекста. Обратные пунктирные стрелки вверх — вызовы агентным движком функций оболочки. Нижний harness исполняет агентный цикл и управляет контекстом.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto"><path d="M 2 2 L 10 6 L 2 10" fill="none" stroke="#7f92a6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="callback-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto"><path d="M 2 2 L 10 6 L 2 10" fill="none" stroke="#9ebeba" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<text class="heading" x="475" y="84">Отдельные экосистемы</text>
+<text class="heading" x="1450" y="84">Общая рабочая среда</text>
+<text class="label" x="475" y="130">Клиенты и рабочие среды / верхний harness</text>
+<text class="label" x="1450" y="130">Рабочая среда / верхний harness</text>
+<line x1="970" y1="58" x2="970" y2="744" stroke="#2a3442"/>
+
+<text class="family" x="315" y="199">Codex</text>
+<text class="family" x="785" y="199">Claude</text>
+<line x1="610" y1="184" x2="610" y2="655" stroke="#25303c" stroke-dasharray="3 7"/>
+
+<g>
+<rect class="client" x="55" y="226" width="136" height="112" rx="8"/>
+<text class="client-name" x="123" y="290">CLI</text>
+<rect class="client" x="207" y="226" width="216" height="112" rx="8"/>
+<text class="client-name" x="315" y="266">Codex Desktop</text>
+<text class="client-sub" x="315" y="295">треды · автоматизации</text>
+<text class="client-sub" x="315" y="316">браузер</text>
+<rect class="client" x="439" y="226" width="136" height="112" rx="8"/>
+<text class="client-name" x="507" y="273">VS Code</text>
+<text class="client-sub" x="507" y="300">extension</text>
+<rect class="client" x="652" y="226" width="266" height="112" rx="8"/>
+<text class="client-name" x="785" y="277">Claude Desktop</text>
+<text class="client-sub" x="785" y="307">агентный режим</text>
+
+<rect class="client" x="1154" y="226" width="592" height="112" rx="8"/>
+<text x="1450" y="268" font-size="38" font-weight="550" fill="#d2e7e4">bb</text>
+<text x="1450" y="296" font-size="17" fill="#c0d6d3">треды · окружения · автоматизации · браузер</text>
+<text class="client-sub" x="1450" y="320">плагины · свои интерфейсы · общие инструменты</text>
+</g>
+
+<g aria-label="Интеграции">
+<path class="link" d="M 123 338 C 123 427 250 421 250 519"/>
+<path class="link" d="M 315 338 V 519"/>
+<path class="link" d="M 507 338 C 507 427 380 421 380 519"/>
+<path class="link" d="M 785 338 V 519"/>
+<path class="link" d="M 1260 338 C 1260 432 1108 419 1108 519"/>
+<path class="link" d="M 1387 338 C 1387 426 1336 421 1336 519"/>
+<path class="link" d="M 1513 338 C 1513 426 1564 421 1564 519"/>
+<path class="link" d="M 1640 338 C 1640 432 1792 419 1792 519"/>
+</g>
+
+<g aria-label="Вызовы функций оболочки агентным движком">
+<path class="callback" d="M 268 534 C 268 421 141 427 141 351"/>
+<path class="callback" d="M 333 534 V 351"/>
+<path class="callback" d="M 398 534 C 398 421 525 427 525 351"/>
+<path class="callback" d="M 803 534 V 351"/>
+<path class="callback" d="M 1126 534 C 1126 419 1278 432 1278 351"/>
+<path class="callback" d="M 1354 534 C 1354 421 1405 426 1405 351"/>
+<path class="callback" d="M 1582 534 C 1582 421 1531 426 1531 351"/>
+<path class="callback" d="M 1810 534 C 1810 419 1658 432 1658 351"/>
+</g>
+
+<g>
+<rect x="132" y="416" width="366" height="31" rx="15" fill="#0e121a"/>
+<a href="#desktop-details"><rect x="132" y="416" width="366" height="31" fill="transparent"/><text x="315" y="437" font-size="14" fill="#9ebeba">+ инструменты, skills и контекст <tspan class="ref">[1]</tspan></text></a>
+<rect x="650" y="416" width="270" height="31" rx="15" fill="#0e121a"/>
+<text x="785" y="437" font-size="14" fill="#9ebeba">+ инструменты и контекст</text>
+<rect x="1222" y="416" width="456" height="31" rx="15" fill="#0e121a"/>
+<a href="#bb-details"><rect x="1222" y="416" width="456" height="31" fill="transparent"/><text x="1450" y="437" font-size="14" fill="#9ebeba">+ инструменты, skills и контекст для агентов <tspan class="ref">[2]</tspan></text></a>
+</g>
+
+<g>
+<rect class="engine" x="155" y="534" width="320" height="110" rx="8"/>
+<text class="engine-name" x="315" y="579">Codex</text>
+<text class="sub" x="315" y="611">App Server</text>
+<rect class="engine" x="652" y="534" width="266" height="110" rx="8"/>
+<text class="engine-name" x="785" y="579">Claude Code</text>
+<text class="sub" x="785" y="611">Agent SDK</text>
+
+<rect class="engine" x="1010" y="534" width="196" height="110" rx="8"/>
+<text class="engine-name" x="1108" y="579">Codex</text>
+<text class="sub" x="1108" y="611">App Server</text>
+<rect class="engine" x="1238" y="534" width="196" height="110" rx="8"/>
+<text class="engine-name" x="1336" y="579">Claude Code</text>
+<text class="sub" x="1336" y="611">Agent SDK</text>
+<rect class="engine" x="1466" y="534" width="196" height="110" rx="8"/>
+<text class="engine-name" x="1564" y="597">Pi</text>
+<rect class="engine" x="1694" y="534" width="196" height="110" rx="8"/>
+<text class="engine-name" x="1792" y="597">OpenCode</text>
+</g>
+
+<text class="label" x="475" y="692">Агентные движки / нижний harness</text>
+<text class="label" x="1450" y="692">Агентные движки / нижний harness</text>
+<text x="475" y="738" font-size="18" fill="#c0cbd8">Агентный цикл · инструменты · управление контекстом</text>
+<text x="1450" y="738" font-size="18" fill="#c0cbd8">Собственный цикл и возможности каждого движка</text>
+
+</svg>
+
+<div class="mobile-scenes">
+<section class="mobile-scene" aria-labelledby="classic-mobile">
+<h2 id="classic-mobile">Отдельные экосистемы</h2>
+<p class="scene-kicker">Клиенты и рабочие среды / верхний harness</p>
+<svg viewBox="0 0 400 330" role="img" aria-labelledby="mobile-title">
+<title id="mobile-title">Три клиента Codex подключаются к Codex App Server. Отдельное семейство Claude: Desktop и Agent SDK. Пунктир вверх — вызовы функций оболочки.</title>
+<defs>
+<marker id="mobile-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#7f92a6" stroke-width="1.5"/></marker>
+<marker id="mobile-back" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#9ebeba" stroke-width="1.5"/></marker>
+</defs>
+<text x="111" y="35">Codex</text><text x="328" y="35">Claude</text>
+<line x1="244" y1="20" x2="244" y2="300" stroke="#25303c" stroke-dasharray="3 7"/>
+<rect class="m-client" x="0" y="53" width="55" height="66" rx="6"/><text x="27.5" y="91">CLI</text>
+<rect class="m-client" x="63" y="53" width="96" height="66" rx="6"/><text x="111" y="82">Codex</text><text x="111" y="102">Desktop</text>
+<rect class="m-client" x="167" y="53" width="61" height="66" rx="6"/><text x="197.5" y="82">VS Code</text><text class="m-sub" x="197.5" y="102">extension</text>
+<rect class="m-client" x="260" y="53" width="137" height="66" rx="6"/><text x="328" y="80">Claude Desktop</text><text class="m-sub" x="328" y="103">агентный режим</text>
+<path class="m-link" d="M 22 119 C 22 167 75 167 75 221"/><path class="m-callback" d="M 86 232 C 86 166 33 166 33 126"/>
+<path class="m-link" d="M 106 119 V221"/><path class="m-callback" d="M 117 232 V126"/>
+<path class="m-link" d="M 192 119 C 192 167 150 167 150 221"/><path class="m-callback" d="M 161 232 C 161 166 203 166 203 126"/>
+<path class="m-link" d="M 322 119 V221"/><path class="m-callback" d="M 334 232 V126"/>
+<rect x="2" y="160" width="228" height="43" fill="#0e121a"/>
+<a href="#desktop-details"><rect x="2" y="157" width="228" height="49" fill="transparent"/><text class="m-sub" x="114" y="176">+ инструменты, skills</text><text class="m-sub" x="114" y="195">и контекст <tspan class="ref">[1]</tspan></text></a>
+<rect x="259" y="160" width="140" height="43" fill="#0e121a"/>
+<text class="m-sub" x="329" y="176">+ инструменты</text><text class="m-sub" x="329" y="195">и контекст</text>
+<rect class="m-engine" x="22" y="232" width="186" height="66" rx="6"/><text class="m-engine-text" x="115" y="260">Codex</text><text class="m-api" x="115" y="282">App Server</text>
+<rect class="m-engine" x="260" y="232" width="137" height="66" rx="6"/><text class="m-engine-text" x="328" y="260">Claude Code</text><text class="m-api" x="328" y="282">Agent SDK</text>
+<text class="m-sub" x="200" y="324">Агентные движки / нижний harness</text>
+</svg>
+<p class="scene-foot">Агентный цикл · инструменты · управление контекстом</p>
+</section>
+<section class="mobile-scene" aria-labelledby="bb-mobile">
+<h2 id="bb-mobile">Общая рабочая среда</h2>
+<p class="scene-kicker">Рабочая среда / верхний harness</p>
+<div class="bb-client"><strong>bb</strong><p>треды · окружения · автоматизации · браузер</p><p>плагины · свои интерфейсы · общие инструменты</p></div>
+<svg class="bb-wires" viewBox="0 0 400 106" role="img" aria-label="bb подключает движки и передаёт контекст; движки вызывают функции bb">
+<path class="m-link" d="M 190 0 V 97"/><path class="m-callback" d="M 210 106 V 9"/>
+<rect x="32" y="32" width="336" height="43" fill="#0e121a"/>
+<a href="#bb-details"><rect x="32" y="29" width="336" height="49" fill="transparent"/><text class="m-sub" x="200" y="48">+ инструменты, skills</text><text class="m-sub" x="200" y="67">и контекст для агентов <tspan class="ref">[2]</tspan></text></a>
+</svg>
+<div class="engine-group" role="group" aria-label="Четыре равноправных агентных движка">
+<div class="engine-grid">
+<div class="engine-node">Codex<small>App Server</small></div>
+<div class="engine-node">Claude Code<small>Agent SDK</small></div>
+<div class="engine-node">Pi</div><div class="engine-node">OpenCode</div>
+</div>
+<p>Агентные движки / нижний harness</p>
+</div>
+<p class="scene-foot" style="margin-top:16px">Собственный цикл и возможности каждого движка</p>
+</section>
+</div>
+<div class="arrow-legend" role="group" aria-label="Легенда стрелок">
+<div class="legend-item"><svg class="legend-symbol" viewBox="0 0 18 38" aria-hidden="true"><path d="M9 3 V35 M4 30 L9 35 L14 30"/></svg><div><strong>Оболочка → движок</strong><small>Подключение, инструменты и контекст</small></div></div>
+<div class="legend-item reverse"><svg class="legend-symbol" viewBox="0 0 18 38" aria-hidden="true"><path d="M9 35 V3" stroke-dasharray="4 4"/><path d="M4 8 L9 3 L14 8"/></svg><div><strong>Движок → оболочка</strong><small>Вызовы функций оболочки</small></div></div>
+</div>
+
+<section class="details" aria-labelledby="details-title">
+<h2 id="details-title">Что именно оболочка добавляет агенту</h2>
+<div class="detail-grid">
+<article class="detail-card" style="--accent:#709d97">
+<header><h3>Действия</h3><p class="card-sub">TOOLS / CLI · что агент может вызвать</p></header>
+<section class="card-examples" id="desktop-details"><h4 class="card-owner"><span class="ref">[1]</span> Codex Desktop</h4>
+<ul><li><code>read_thread_terminal</code>Прочитать вывод терминала</li><li><code>automation_update</code>Настроить запуск по расписанию</li><li><code>create_thread / read_thread</code>Создать или прочитать тред</li></ul>
+</section>
+<section class="card-examples" id="bb-details"><h4 class="card-owner"><span class="ref">[2]</span> bb</h4>
+<ul><li><code>bb thread search</code>Найти другой разговор</li><li><code>bb thread spawn / tell</code>Дать работу другому агенту</li><li><code>bb terminal</code>Управлять терминалами среды</li></ul>
+</section>
+</article>
+<article class="detail-card" style="--accent:#ac9068">
+<header><h3>Инструкции</h3><p class="card-sub">КОНТЕКСТ · где и по каким правилам работать</p></header>
+<section class="card-examples"><h4 class="card-owner"><span class="ref">[1]</span> Codex Desktop</h4>
+<p><code>developerInstructions</code><br>Дополнительные правила приложения: как пользоваться возможностями Desktop.</p>
+<p class="example">Передаются в запросе к App Server как developer-инструкции.</p>
+</section>
+<section class="card-examples"><h4 class="card-owner"><span class="ref">[2]</span> bb</h4>
+<p>Контекст окружения + инструкции подключённых плагинов.</p>
+<p class="example">Например: долгие процессы запускать через <code>bb terminal</code>.</p>
+</section>
+</article>
+<article class="detail-card" style="--accent:#8497bb">
+<header><h3>Skills</h3><p class="card-sub">РЕЦЕПТЫ · как выполнить конкретную задачу</p></header>
+<section class="card-examples"><h4 class="card-owner"><span class="ref">[1]</span> Codex Desktop</h4>
+<p><code>control-in-app-browser</code><br>Инструкции по работе со встроенным браузером.</p>
+<p>Плагин поставляет skill и доступ к браузерному runtime.</p>
+</section>
+<section class="card-examples"><h4 class="card-owner"><span class="ref">[2]</span> bb</h4>
+<ul><li><code>bb-cli</code>Работа с тредами, проектами и окружениями</li><li><code>inline-vis</code>Как показать HTML-результат прямо в чате</li></ul>
+</section>
+</article>
+</div>
+<footer class="notes"><p>В контекст — описания действий и инструкции. Сами терминалы, браузер и планировщик остаются сервисами оболочки.</p><p>Примеры Desktop найдены в коде приложения; доступность зависит от режима и флагов. В bb способы подключения зависят от провайдера и плагинов.</p></footer>
+</section>
+</main>
+</body>
+</html>
